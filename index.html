@@ -937,6 +937,7 @@ angular.module('todoApp', [])
   $scope.authData = {mode: 'login', email: '', password: '', error: ''};
   var _uid = null;
   var _saveTimer = null;
+  var _firestoreLoaded = false;
   var _wasGuest = localStorage.getItem('tfp_guestMode') === '1';
 
   /* Settings — 從 localStorage 立即載入（避免畫面閃爍），登入後再由 Firestore 覆蓋 */
@@ -970,16 +971,19 @@ angular.module('todoApp', [])
     $scope.weekDays = $scope.settings.language==='zh-TW' ? ['日','一','二','三','四','五','六'] : ['Su','Mo','Tu','We','Th','Fr','Sa'];
   };
 
-  /* Tasks — 訪客預設從 localStorage 載入；登入後由 Firestore 覆蓋 */
-  var savedT = [];
-  try { savedT = JSON.parse(localStorage.getItem('tfp_tasks')||'[]'); } catch(e){}
-  $scope.tasks = savedT.length ? savedT : [
-    {id:1,text:'回覆客戶重要郵件',description:'記得附上最新的產品型錄與報價單。',
-     date:todayStr(),completed:false,isOverdue:false,priority:'1',deadline:'',
-     reminderType:'0',customReminderTime:'',calculatedReminder:null,
-     tags:['工作','緊急'],location:'',
-     steps:[{id:101,text:'整理報價單',completed:true},{id:102,text:'寄出郵件',completed:false}]}
-  ];
+  /* Tasks — 訪客從 localStorage 載入；Firebase 用戶初始化為空，待 Firestore 讀取完畢後覆蓋 */
+  $scope.tasks = [];
+  if (_wasGuest) {
+    var savedT = [];
+    try { savedT = JSON.parse(localStorage.getItem('tfp_tasks')||'[]'); } catch(e){}
+    $scope.tasks = savedT.length ? savedT : [
+      {id:1,text:'回覆客戶重要郵件',description:'記得附上最新的產品型錄與報價單。',
+       date:todayStr(),completed:false,isOverdue:false,priority:'1',deadline:'',
+       reminderType:'0',customReminderTime:'',calculatedReminder:null,
+       tags:['工作','緊急'],location:'',
+       steps:[{id:101,text:'整理報價單',completed:true},{id:102,text:'寄出郵件',completed:false}]}
+    ];
+  }
 
   /* 儲存策略：訪客 → localStorage；登入用戶 → Firestore（防抖動 1.5s） */
   function saveToFirestore() {
@@ -993,7 +997,7 @@ angular.module('todoApp', [])
     if ($scope.currentUser === '__guest__' || !$scope.currentUser) {
       try{localStorage.setItem('tfp_tasks', JSON.stringify($scope.tasks));}catch(e){}
       try{localStorage.setItem('tfp_settings', JSON.stringify($scope.settings));}catch(e){}
-    } else if (_uid) {
+    } else if (_uid && _firestoreLoaded) {
       if (_saveTimer) clearTimeout(_saveTimer);
       _saveTimer = setTimeout(saveToFirestore, 1500);
     }
@@ -1342,18 +1346,25 @@ angular.module('todoApp', [])
   function loadFromFirestore(uid) {
     db.collection('users').doc(uid).get().then(function(doc) {
       $scope.$apply(function() {
-        if (doc.exists()) {
+        if (doc.exists) {
           var data = doc.data();
           if (data.tasks && data.tasks.length) $scope.tasks = data.tasks;
+          else $scope.tasks = [];
           if (data.settings && Object.keys(data.settings).length) {
             angular.extend($scope.settings, data.settings);
             applyFontSize($scope.settings.fontSize);
             applyAccentColor($scope.settings.accentColor);
           }
+        } else {
+          $scope.tasks = [];
         }
+        _firestoreLoaded = true;
         rebuildLists();
       });
-    }).catch(function(e){ console.error('Firestore 讀取失敗:', e); });
+    }).catch(function(e){
+      console.error('Firestore 讀取失敗:', e);
+      _firestoreLoaded = true;
+    });
   }
 
   /* Firebase Auth 狀態監聽（頁面載入 / 登入 / 登出皆觸發） */
