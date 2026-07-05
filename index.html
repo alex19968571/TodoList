@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="zh-TW" ng-app="todoApp">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskFlow Pro</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet">
+  <!-- Firebase SDK (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.3/angular.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    :root{--accent:#e53e3e;--accent-light:#fff5f5;--sidebar:#f7fafc;--bg:#ffffff;--card:#ffffff;--border:#e2e8f0;--text:#2d3748;--muted:#718096;--hover:#f7fafc;--inp:#ffffff;}
+    body.dark-theme{--sidebar:#2d3748;--bg:#1a202c;--card:#2d3748;--border:#4a5568;--text:#f7fafc;--muted:#a0aec0;--hover:#374151;--inp:#1a202c;}
+    html,body{margin:0;padding:0;height:100%;}
+    body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;transition:background .3s,color .3s;}
+
+    /* Font size: 小=12pt=16px / 中=14pt≈19px / 大=16pt≈21px */
+    html.font-sm{font-size:16px;}
+    html.font-md{font-size:19px;}
+    html.font-lg{font-size:21px;}
+
+    /* ── SIDEBAR ── */
+    .sidebar{position:fixed;left:0;top:0;bottom:0;width:240px;background:var(--sidebar);border-right:1px solid var(--border);padding:1rem;display:flex;flex-direction:column;z-index:200;}
+    .brand{display:flex;align-items:center;gap:.6rem;margin-bottom:2rem;padding:.25rem .5rem;}
+    .brand-icon{width:34px;height:34px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem;}
+    .brand-name{font-weight:700;font-size:1.05rem;}
+    .nav-btn{display:flex;align-items:center;gap:.65rem;padding:.55rem .75rem;border-radius:8px;border:none;background:transparent;color:var(--text);cursor:pointer;width:100%;text-align:left;font-size:.92rem;transition:background .15s,color .15s;margin-bottom:2px;}
+    .nav-btn:hover{background:rgba(0,0,0,.06);}
+    body.dark-theme .nav-btn:hover{background:rgba(255,255,255,.07);}
+    .nav-btn.active{background:var(--accent-light);color:var(--accent);font-weight:600;}
+    .badge-count{margin-left:auto;background:var(--accent-light);color:var(--accent);font-size:.68rem;padding:2px 8px;border-radius:999px;font-weight:700;}
+
+    /* ── LAYOUT ── */
+    .main-wrap{margin-left:240px;display:flex;min-height:100vh;}
+    .tasks-panel{flex:1;overflow-y:auto;padding:2.5rem;border-right:1px solid var(--border);min-width:0;}
+    .right-panel{width:320px;min-width:320px;display:flex;flex-direction:column;background:var(--sidebar);}
+    .settings-panel{flex:1;overflow-y:auto;padding:2.5rem;}
+
+    /* ── INPUTS ── */
+    .c-input{background:var(--inp);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.45rem .75rem;width:100%;font-size:.88rem;transition:border-color .15s;}
+    .c-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-light);}
+    textarea.c-input{resize:vertical;}
+    select.c-input{
+      -webkit-appearance:none;appearance:none;cursor:pointer;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%23718096' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+      background-repeat:no-repeat;background-position:right .75rem center;
+      padding-right:2.25rem;
+    }
+    .title-input{background:transparent;border:none;border-bottom:2px solid var(--border);color:var(--text);padding:.4rem 0;width:100%;font-size:1.05rem;font-weight:600;}
+    .title-input:focus{outline:none;border-bottom-color:var(--accent);}
+
+    /* ── PRIORITY DROPDOWN ── */
+    .p-dropdown{position:relative;}
+    .p-dropdown-trigger{background:var(--inp);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.45rem .75rem;width:100%;font-size:.88rem;cursor:pointer;display:flex;align-items:center;gap:.5rem;text-align:left;}
+    .p-dropdown-trigger:hover{border-color:var(--accent);}
+    .p-dropdown-menu{position:absolute;top:calc(100% + 4px);left:0;z-index:620;background:var(--card);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.15);width:100%;max-height:220px;overflow-y:auto;}
+    .p-dropdown-item{padding:.5rem .85rem;cursor:pointer;font-size:.88rem;color:var(--text);display:flex;align-items:center;gap:.6rem;}
+    .p-dropdown-item:hover{background:var(--hover);}
+    .p-dropdown-overlay{position:fixed;inset:0;z-index:610;}
+    /* 優先級內嵌編輯欄位 */
+    .prio-edit-name{background:transparent;border:none;border-bottom:1px solid transparent;color:var(--text);outline:none;flex:1;min-width:0;font-size:.88rem;padding:.1rem .25rem;transition:border-color .15s;cursor:text;}
+    .prio-edit-name:hover{border-bottom-color:var(--border);}
+    .prio-edit-name:focus{border-bottom-color:var(--accent);}
+    .prio-edit-color{width:22px;height:22px;border:1px solid var(--border);border-radius:4px;cursor:pointer;padding:0;flex-shrink:0;background:none;}
+
+    /* ── FORM CARD ── */
+    .form-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.25rem;margin-bottom:1.5rem;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+
+    /* ── TASK ITEM ── */
+    .task-item{position:relative;border-bottom:1px solid var(--border);padding:.7rem .5rem .7rem 1.1rem;border-radius:6px;transition:background .12s;border-left:4px solid transparent;user-select:none;}
+    .task-item:hover{background:var(--hover);}
+    .task-item:last-child{border-bottom:none;}
+    .task-item.done{opacity:.58;}
+    .task-item.dragging{opacity:.3;border:2px dashed var(--accent)!important;}
+    .task-item.drop-before{border-top:2.5px solid var(--accent)!important;}
+    .task-item.drop-after{border-bottom:2.5px solid var(--accent)!important;}
+    .task-actions{opacity:0;transition:opacity .15s;}
+    .task-item:hover .task-actions{opacity:1;}
+
+    /* ── STEP ROW ── */
+    .step-row{display:flex;align-items:center;gap:.5rem;background:var(--hover);padding:5px 10px;border-radius:6px;margin-bottom:4px;cursor:default;user-select:none;}
+    .step-row.step-dragging{opacity:.35;border:1px dashed var(--accent);}
+    .step-row.step-drop-before{border-top:2px solid var(--accent)!important;}
+    .step-row.step-drop-after{border-bottom:2px solid var(--accent)!important;}
+    .step-grip{color:var(--muted);cursor:grab;flex-shrink:0;font-size:.85rem;touch-action:none;}
+    .step-grip:active{cursor:grabbing;}
+
+    /* ── OVERDUE ── */
+    .overdue-area{flex:1;overflow-y:auto;padding:1.25rem;background:var(--accent-light);}
+    .overdue-card{background:var(--card);border:1px solid var(--accent-light);border-radius:8px;padding:.75rem;margin-bottom:.75rem;cursor:pointer;transition:box-shadow .15s;}
+    .overdue-card:hover{box-shadow:0 2px 8px var(--accent-light);}
+
+    /* ── MINI CALENDAR (right panel) ── */
+    .cal-header{background:var(--card);border-bottom:1px solid var(--border);padding:1.25rem;}
+    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;}
+    .cal-day-btn{width:34px;height:34px;border:none;background:transparent;border-radius:50%;font-size:.82rem;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;flex-direction:column;position:relative;margin:auto;}
+    .cal-day-btn:hover{background:rgba(0,0,0,.07);}
+    body.dark-theme .cal-day-btn:hover{background:rgba(255,255,255,.08);}
+    .cal-day-btn.sel{background:var(--accent-light);color:var(--accent);font-weight:700;}
+    .cal-dot{width:4px;height:4px;background:var(--accent);border-radius:50%;position:absolute;bottom:2px;}
+
+    /* ── OUTLOOK CALENDAR ── */
+    .cal-main{flex:1;overflow-y:auto;padding:1.5rem 2rem;display:flex;flex-direction:column;}
+    .outlook-wrap{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--card);flex:1;display:flex;flex-direction:column;}
+    .outlook-header-row{display:grid;grid-template-columns:repeat(7,1fr);background:var(--hover);flex-shrink:0;}
+    .outlook-wday{padding:.45rem;text-align:center;font-size:.75rem;font-weight:700;color:var(--muted);border-right:1px solid var(--border);}
+    .outlook-wday:last-child{border-right:none;}
+    .outlook-cells{display:grid;grid-template-columns:repeat(7,1fr);flex:1;}
+    .outlook-cell{min-height:calc((100vh - 240px) / 6);border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:5px 4px;position:relative;overflow:hidden;}
+    .outlook-cell:nth-child(7n){border-right:none;}
+    .outlook-cell:nth-last-child(-n+7){border-bottom:none;}
+    .outlook-cell.other-month{background:rgba(0,0,0,.018);}
+    body.dark-theme .outlook-cell.other-month{background:rgba(255,255,255,.02);}
+    .outlook-cell:hover .cal-cell-add{opacity:1;}
+    .cal-cell-num{width:26px;height:26px;font-size:.8rem;font-weight:600;display:flex;align-items:center;justify-content:center;border-radius:50%;margin-bottom:3px;cursor:pointer;flex-shrink:0;}
+    .cal-cell-num.is-today{background:var(--accent);color:#fff!important;}
+    .cal-cell-num.other-month-num{color:var(--muted);font-weight:400;}
+    .cal-chip{display:block;font-size:.7rem;padding:2px 5px;border-radius:3px;color:#fff;cursor:pointer;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .cal-chip:hover{filter:brightness(1.15);}
+    .cal-chip.done-chip{opacity:.55;text-decoration:line-through;}
+    .cal-more{font-size:.68rem;color:var(--muted);cursor:pointer;padding:1px 4px;}
+    .cal-more:hover{color:var(--accent);}
+    .cal-cell-add{position:absolute;top:4px;right:4px;background:none;border:none;color:var(--muted);cursor:pointer;opacity:0;transition:opacity .15s;padding:0;line-height:1;font-size:.9rem;}
+    .cal-cell-add:hover{color:var(--accent);}
+
+    /* ── CALENDAR NAV ── */
+    .cal-nav-btn{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.35rem .85rem;cursor:pointer;font-size:1rem;transition:background .15s;}
+    .cal-nav-btn:hover{background:var(--hover);}
+    .cal-year-wrap{position:relative;display:inline-flex;align-items:center;}
+    .cal-year-btn{background:transparent;border:none;border-bottom:2px solid var(--border);color:var(--text);font-size:1.35rem;font-weight:700;cursor:pointer;padding:.1rem .4rem;outline:none;transition:border-color .15s;}
+    .cal-year-btn:hover{border-bottom-color:var(--accent);}
+    .year-picker-overlay{position:fixed;inset:0;z-index:610;}
+    .year-picker-menu{position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);z-index:620;background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.18);padding:.75rem;min-width:200px;}
+    .year-picker-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+    .year-picker-item{background:none;border:none;padding:.4rem .2rem;border-radius:6px;cursor:pointer;font-size:.85rem;color:var(--text);text-align:center;transition:background .1s;}
+    .year-picker-item:hover{background:var(--hover);}
+    .year-picker-item.yp-active{background:var(--accent);color:#fff;font-weight:700;}
+
+    /* ── SETTINGS ── */
+    .settings-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.5rem;margin-bottom:1.25rem;}
+    .prio-row{display:flex;align-items:center;gap:.75rem;background:var(--hover);padding:.55rem .75rem;border-radius:8px;margin-bottom:.5rem;}
+    .color-input{width:36px;height:28px;border:1px solid var(--border);border-radius:4px;cursor:pointer;padding:1px;}
+
+    /* ── NOTIFICATION ── */
+    .notif-wrap{position:fixed;top:1rem;right:1rem;z-index:9999;display:flex;flex-direction:column;gap:.75rem;pointer-events:none;max-height:90vh;overflow-y:auto;}
+    .notif-card{pointer-events:all;background:#fff;color:#2d3748;border-left:4px solid var(--accent);border-radius:8px;padding:.9rem 1.1rem;width:310px;box-shadow:0 8px 24px rgba(0,0,0,.15);animation:slideIn .3s ease;}
+    .notif-card .btn-icon{color:#718096;}
+    .notif-card .notif-muted{color:#718096;}
+    @keyframes slideIn{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* ── MAP MODAL ── */
+    .map-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1100;display:flex;align-items:center;justify-content:center;padding:1rem;}
+    .map-box{background:var(--card);border-radius:12px;overflow:hidden;width:100%;max-width:620px;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+    #lf-map{width:100%;height:300px;}
+
+    /* ── MISC ── */
+    .add-btn{display:flex;align-items:center;gap:.5rem;padding:.7rem .5rem;background:transparent;border:none;border-radius:6px;color:var(--muted);cursor:pointer;width:100%;text-align:left;font-size:.92rem;transition:color .15s,background .15s;}
+    .add-btn:hover{color:var(--accent);background:var(--hover);}
+    .btn-icon{background:none;border:none;cursor:pointer;padding:3px;color:var(--muted);transition:color .15s;}
+    .btn-icon:hover{color:var(--accent);}
+    .divider{border-top:1px solid var(--border);margin:.75rem 0;}
+    .min-w-0{min-width:0;}
+    .text-pre{white-space:pre-line;}
+    .meta-row{font-size:.72rem;color:var(--muted);}
+    .tag-chip{display:inline-flex;align-items:center;gap:3px;padding:3px 10px;border-radius:999px;font-size:.75rem;cursor:pointer;border:none;transition:background .12s;}
+    .tag-chip.sel{background:var(--accent);color:#fff;}
+    .tag-chip:not(.sel){background:#edf2f7;color:#4a5568;}
+    body.dark-theme .tag-chip:not(.sel){background:#4a5568;color:#e2e8f0;}
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:991px){
+      .sidebar{width:100%;position:fixed;bottom:0;top:auto;left:0;right:0;flex-direction:row;border-right:none;border-top:1px solid var(--border);padding:.5rem;align-items:center;justify-content:space-around;min-height:unset;}
+      .sidebar .brand{display:none;}
+      .sidebar .nav-btn{flex-direction:column;gap:2px;font-size:.68rem;justify-content:center;width:auto;padding:.3rem .5rem;}
+      .badge-count{display:none;}
+      .main-wrap{margin-left:0;margin-bottom:68px;flex-direction:column;}
+      .tasks-panel,.cal-main{border-right:none;padding:1rem;}
+      .right-panel{width:100%;min-width:unset;border-left:none;border-top:1px solid var(--border);}
+      .outlook-cell{min-height:60px;}
+      .sidebar-user{display:none;}
+    }
+
+    /* ── 元件顏色覆蓋 Bootstrap ── */
+    .btn-danger,.btn-danger:hover,.btn-danger:focus,.btn-danger:active,.btn-danger.active{background-color:var(--accent)!important;border-color:var(--accent)!important;box-shadow:none!important;}
+    .btn-primary,.btn-primary:hover,.btn-primary:focus,.btn-primary:active,.btn-primary.active{background-color:var(--accent)!important;border-color:var(--accent)!important;box-shadow:none!important;}
+    .btn-outline-primary{color:var(--accent)!important;border-color:var(--accent)!important;}
+    .btn-outline-primary:hover,.btn-outline-primary:active{background-color:var(--accent)!important;color:#fff!important;border-color:var(--accent)!important;}
+    /* 截止日期文字顏色 */
+    .deadline-text{color:var(--accent);}
+
+    /* ── 登入/註冊 Auth 遮罩 ── */
+    .auth-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9000;display:flex;align-items:center;justify-content:center;padding:1rem;}
+    .auth-box{background:#fff;border-radius:16px;padding:2rem;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+    .auth-tab-btn{padding:.5rem 1.25rem;border:none;background:none;color:#718096;font-size:.95rem;cursor:pointer;border-bottom:2px solid transparent;font-weight:500;transition:color .15s,border-color .15s;}
+    .auth-tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600;}
+
+    /* ── 側欄使用者區域 ── */
+    .sidebar-user{margin-top:auto;border-top:1px solid var(--border);padding:.75rem .5rem 0;}
+    .sidebar-avatar{width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.82rem;font-weight:700;}
+  </style>
+</head>
+
+<body ng-controller="AppCtrl"
+      ng-class="{'dark-theme':settings.theme==='dark','font-sm':settings.fontSize==='sm','font-md':settings.fontSize==='md','font-lg':settings.fontSize==='lg'}">
+
+<!-- ===== NOTIFICATIONS ===== -->
+<div class="notif-wrap">
+  <div class="notif-card" ng-repeat="n in notifications track by n.id">
+    <div class="d-flex justify-content-between align-items-start mb-2">
+      <span class="fw-bold" style="color:var(--accent)"><i class="bi bi-bell-fill me-1"></i>提醒通知</span>
+      <button class="btn-icon ms-2" ng-click="dismissNotif(n.id)"><i class="bi bi-x-lg" style="font-size:.85rem;"></i></button>
+    </div>
+    <p class="mb-1 fw-medium" style="color:#2d3748;">{{n.message}}</p>
+    <small class="notif-muted"><i class="bi bi-clock me-1"></i>截止: {{n.deadlineDisplay}}</small>
+  </div>
+</div>
+
+<!-- ===== FIREBASE 初始化載入 ===== -->
+<div ng-if="authLoading" style="position:fixed;inset:0;background:#fff;z-index:9100;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;">
+  <div style="width:44px;height:44px;border:3px solid #e2e8f0;border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;"></div>
+  <span style="color:#718096;font-size:.9rem;">連線中...</span>
+</div>
+
+<!-- ===== AUTH OVERLAY ===== -->
+<div class="auth-overlay" ng-if="!authLoading && !currentUser">
+  <div class="auth-box">
+    <div class="text-center mb-4">
+      <div style="width:52px;height:52px;background:var(--accent);border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.6rem;margin:0 auto .75rem;">
+        <i class="bi bi-check-circle-fill"></i>
+      </div>
+      <h5 class="fw-bold mb-1" style="color:#2d3748;">TaskFlow Pro</h5>
+      <p style="font-size:.85rem;color:#718096;margin:0;">登入以儲存並同步您的任務</p>
+    </div>
+    <!-- 分頁 -->
+    <div class="d-flex border-bottom mb-3">
+      <button class="auth-tab-btn" ng-class="{active:authData.mode==='login'}" ng-click="authData.mode='login';authData.error=''">登入</button>
+      <button class="auth-tab-btn" ng-class="{active:authData.mode==='register'}" ng-click="authData.mode='register';authData.error=''">註冊</button>
+    </div>
+    <form ng-submit="doAuth()" novalidate>
+      <div class="mb-3">
+        <label style="font-size:.85rem;color:#4a5568;font-weight:500;">電子郵件</label>
+        <input type="email" class="form-control mt-1" ng-model="authData.email"
+               placeholder="請輸入電子郵件" autocomplete="email">
+      </div>
+      <div class="mb-3">
+        <label style="font-size:.85rem;color:#4a5568;font-weight:500;">密碼</label>
+        <input type="password" class="form-control mt-1" ng-model="authData.password"
+               placeholder="請輸入密碼" autocomplete="current-password">
+      </div>
+      <div class="alert alert-danger py-2 mb-3" style="font-size:.85rem;" ng-if="authData.error">
+        <i class="bi bi-exclamation-circle me-1"></i>{{authData.error}}
+      </div>
+      <button type="submit" class="btn btn-danger w-100 fw-bold">
+        {{authData.mode==='login'?'登入':'建立帳號'}}
+      </button>
+    </form>
+    <div class="text-center mt-3">
+      <button class="btn btn-link p-0" style="font-size:.83rem;color:#718096;text-decoration:none;" ng-click="doGuest()">
+        <i class="bi bi-person me-1"></i>以訪客模式繼續（不儲存帳號）
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MAP MODAL ===== -->
+<div class="map-overlay" ng-if="showMapModal" ng-click="closeMap()">
+  <div class="map-box" ng-click="$event.stopPropagation()">
+    <div class="d-flex justify-content-between align-items-center p-3" style="border-bottom:1px solid var(--border);">
+      <h6 class="mb-0 fw-bold"><i class="bi bi-geo-alt-fill me-2"></i>選擇地點</h6>
+      <button class="btn-icon" type="button" ng-click="closeMap()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="p-3">
+      <div class="d-flex gap-2 mb-2">
+        <input type="text" class="c-input flex-grow-1" ng-model="ui.mapSearch"
+               placeholder="輸入地點名稱後按 Enter 搜尋..." ng-keydown="mapKeydown($event)">
+        <button type="button" class="btn btn-outline-secondary" ng-click="searchOnMap()">
+          <i class="bi bi-search"></i>
+        </button>
+        <button type="button" class="btn btn-primary" ng-click="confirmMap()">確認</button>
+      </div>
+      <div id="lf-map" lf-map-init></div>
+      <small class="d-block mt-2" style="color:var(--muted);">
+        <i class="bi bi-info-circle me-1"></i>點擊地圖可自動帶入座標地址；輸入地名後按 Enter 或點搜尋
+      </small>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SIDEBAR ===== -->
+<nav class="sidebar">
+  <div class="brand">
+    <div class="brand-icon"><i class="bi bi-check-circle-fill"></i></div>
+    <span class="brand-name">TaskFlow Pro</span>
+  </div>
+  <button class="nav-btn" ng-class="{active:tab==='today'}" ng-click="setTab('today')">
+    <i class="bi bi-sun-fill fs-5"></i>
+    <span class="nav-label">{{t.today}}</span>
+    <span class="badge-count" ng-if="pendingCount>0">{{pendingCount}}</span>
+  </button>
+  <button class="nav-btn" ng-class="{active:tab==='calendar'}" ng-click="setTab('calendar')">
+    <i class="bi bi-calendar3 fs-5"></i>
+    <span class="nav-label">{{t.calendar}}</span>
+  </button>
+  <button class="nav-btn" ng-class="{active:tab==='settings'}" ng-click="setTab('settings')">
+    <i class="bi bi-gear-fill fs-5"></i>
+    <span class="nav-label">{{t.settings}}</span>
+  </button>
+
+  <!-- 使用者登入區域 -->
+  <div class="sidebar-user" ng-if="currentUser">
+    <div class="d-flex align-items-center gap-2">
+      <div class="sidebar-avatar">
+        {{currentUser==='__guest__'?'G':currentUser.charAt(0).toUpperCase()}}
+      </div>
+      <div class="flex-grow-1 min-w-0">
+        <div style="font-size:.82rem;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+          {{currentUser==='__guest__'?'訪客模式':currentUser}}
+        </div>
+        <div style="font-size:.72rem;color:var(--muted);" ng-if="currentUser!=='__guest__'">已登入</div>
+      </div>
+      <button class="btn-icon flex-shrink-0" title="登出" ng-click="logout()">
+        <i class="bi bi-box-arrow-right"></i>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== MAIN WRAP ===== -->
+<div class="main-wrap">
+
+  <!-- ===== SETTINGS ===== -->
+  <div class="settings-panel" ng-if="tab==='settings'">
+    <h2 class="fw-bold mb-4"><i class="bi bi-gear me-2"></i>{{t.settings}}</h2>
+
+    <!-- 標籤 -->
+    <div class="settings-card">
+      <h5 class="fw-bold mb-3"><i class="bi bi-tags me-2"></i>{{t.tags}}</h5>
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        <span class="d-inline-flex align-items-center gap-1 px-3 py-1 rounded-pill"
+              style="background:#ebf4ff;color:#2b6cb0;font-size:.82rem;" ng-repeat="tag in settings.tags">
+          {{tag}}
+          <button class="btn-icon p-0 ms-1" style="color:#2b6cb0;" ng-click="removeTag(tag)">
+            <i class="bi bi-x" style="font-size:.75rem;"></i>
+          </button>
+        </span>
+      </div>
+      <div class="d-flex gap-0" style="max-width:300px;">
+        <input type="text" class="c-input" ng-model="ui.newTagInput" placeholder="新增標籤..."
+               ng-keydown="tagKeydown($event)" style="border-radius:6px 0 0 6px;border-right:none;">
+        <button class="btn btn-outline-secondary" style="border-radius:0 6px 6px 0;" ng-click="addTag()">+</button>
+      </div>
+    </div>
+
+    <!-- 外觀 -->
+    <div class="settings-card">
+      <div class="mb-4">
+        <h6 class="fw-bold mb-2"><i class="bi bi-palette me-2"></i>{{t.theme}}</h6>
+        <select class="c-input" style="max-width:200px;" ng-model="settings.theme">
+          <option value="light">Light（亮色）</option>
+          <option value="dark">Dark（暗色）</option>
+        </select>
+      </div>
+      <div class="mb-4">
+        <h6 class="fw-bold mb-2"><i class="bi bi-droplet-fill me-2"></i>元件顏色</h6>
+        <div class="d-flex align-items-center gap-3">
+          <input type="color" style="width:44px;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;"
+                 ng-model="settings.accentColor">
+          <span style="font-size:.85rem;color:var(--muted);">{{settings.accentColor}}</span>
+          <button class="btn btn-sm btn-outline-secondary" ng-click="resetAccentColor()">重設預設</button>
+        </div>
+        <small class="d-block mt-2" style="color:var(--muted);">套用到整個頁面的按鈕、圓圈、旗標等元件顏色。</small>
+      </div>
+      <div class="mb-4">
+        <h6 class="fw-bold mb-2"><i class="bi bi-fonts me-2"></i>{{t.fontSize}}</h6>
+        <select class="c-input" style="max-width:200px;" ng-model="settings.fontSize">
+          <option value="sm">Small（小 12pt）</option>
+          <option value="md">Medium（中 16pt）</option>
+          <option value="lg">Large（大 24pt）</option>
+        </select>
+      </div>
+      <div>
+        <h6 class="fw-bold mb-2"><i class="bi bi-translate me-2"></i>{{t.language}}</h6>
+        <select class="c-input" style="max-width:200px;" ng-model="settings.language" ng-change="onLangChange()">
+          <option value="zh-TW">繁體中文</option>
+          <option value="en-US">English</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TODAY TAB ===== -->
+  <div class="tasks-panel" ng-if="tab==='today'">
+    <header class="mb-4">
+      <h1 class="fw-bold" style="font-size:1.6rem;">
+        <span ng-if="isSelToday()">{{t.today}}</span>
+        <span ng-if="!isSelToday()">{{selDateLabel()}}</span>
+      </h1>
+    </header>
+
+    <button class="add-btn" ng-if="!isAdding" ng-click="startAdd()">
+      <i class="bi bi-plus-circle"></i> {{t.addTask}}
+    </button>
+
+    <!-- TASK FORM -->
+    <div class="form-card" ng-if="isAdding">
+      <form ng-submit="saveTask($event)" novalidate>
+        <input type="text" class="title-input mb-2" placeholder="任務名稱..." ng-model="form.text" autofocus>
+        <textarea class="c-input mb-3" rows="2" placeholder="{{t.description}}" ng-model="form.description"></textarea>
+
+        <!-- 子步驟列表（整列顯示，有步驟才顯示） -->
+        <div class="mb-2" ng-if="form.steps.length">
+          <div class="step-row"
+               ng-repeat="s in form.steps track by s.id"
+               draggable="true"
+               step-dnd="s.id"
+               ng-class="{'step-dragging':stepDnd.dragId===s.id,'step-drop-before':stepDnd.dropId===s.id&&stepDnd.pos==='before','step-drop-after':stepDnd.dropId===s.id&&stepDnd.pos==='after'}">
+            <i class="bi bi-grip-vertical step-grip"></i>
+            <button type="button" class="btn-icon flex-shrink-0" ng-click="toggleFormStep(s.id);$event.stopPropagation()">
+              <i class="bi" ng-class="s.completed?'bi-check-circle-fill':'bi-circle'"
+                 style="color:var(--accent);font-size:.9rem;"></i>
+            </button>
+            <input type="text" class="c-input flex-grow-1"
+                   ng-if="ui.stepEditId===s.id"
+                   ng-model="s.text"
+                   ng-blur="ui.stepEditId=null"
+                   ng-keydown="stepEditKeydown($event)"
+                   style="font-size:.85rem;padding:.2rem .5rem;"
+                   autofocus>
+            <span class="flex-grow-1" style="font-size:.87rem;cursor:text;"
+                  ng-if="ui.stepEditId!==s.id"
+                  ng-class="{'text-decoration-line-through opacity-50':s.completed}"
+                  ng-click="ui.stepEditId=s.id;$event.stopPropagation()">{{s.text}}</span>
+            <button type="button" class="btn-icon flex-shrink-0" ng-click="removeFormStep(s.id);$event.stopPropagation()">
+              <i class="bi bi-x"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 第一列：子步驟新增（左）＋ 優先級（右） -->
+        <div class="row g-3 mb-3">
+          <div class="col-12 col-md-6">
+            <label class="d-block mb-1" style="font-size:.8rem;color:var(--muted);">
+              <i class="bi bi-list-task me-1"></i>{{t.steps}}
+              <small style="font-size:.75em;opacity:.7;"> 拖曳可排序，點文字可編輯</small>
+            </label>
+            <div class="d-flex gap-2">
+              <input type="text" class="c-input flex-grow-1" placeholder="{{t.stepPlaceholder}}"
+                     ng-model="ui.newStepText" ng-keydown="stepKeydown($event)" style="font-size:.85rem;">
+              <button type="button" class="btn btn-sm btn-outline-secondary" ng-click="addFormStep()">新增</button>
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="d-block mb-1" style="font-size:.8rem;color:var(--muted);">
+              <i class="bi bi-flag me-1"></i>{{t.priority}}
+            </label>
+            <div class="p-dropdown-overlay" ng-if="ui.isPrioOpen" ng-click="ui.isPrioOpen=false"></div>
+            <div class="p-dropdown">
+              <button type="button" class="p-dropdown-trigger" ng-click="ui.isPrioOpen=!ui.isPrioOpen">
+                <i class="bi bi-flag-fill" style="color:{{getPrioColor(form.priority)}};flex-shrink:0;"></i>
+                <span class="flex-grow-1">{{getPrioLabel(form.priority)}}</span>
+                <i class="bi bi-chevron-down" style="font-size:.72rem;opacity:.6;flex-shrink:0;"></i>
+              </button>
+              <div class="p-dropdown-menu" ng-if="ui.isPrioOpen">
+                <div class="p-dropdown-item" ng-repeat="p in settings.priorities track by p.level"
+                     ng-click="prioItemClick(p.level)">
+                  <i class="bi bi-flag-fill" style="color:{{p.color}};flex-shrink:0;"></i>
+                  <span class="flex-grow-1" ng-if="ui.prioEditLevel!==p.level">{{p.label}}</span>
+                  <input type="text" class="prio-edit-name" ng-model="p.label"
+                         ng-if="ui.prioEditLevel===p.level"
+                         ng-click="$event.stopPropagation()" placeholder="等級名稱">
+                  <input type="color" class="prio-edit-color" ng-model="p.color"
+                         ng-if="ui.prioEditLevel===p.level"
+                         ng-click="$event.stopPropagation()" title="修改顏色">
+                  <button class="btn-icon flex-shrink-0" ng-if="ui.prioEditLevel!==p.level"
+                          ng-click="ui.prioEditLevel=p.level;$event.stopPropagation()" title="編輯名稱與顏色">
+                    <i class="bi bi-pencil" style="font-size:.72rem;"></i>
+                  </button>
+                  <button class="btn-icon flex-shrink-0" ng-if="ui.prioEditLevel===p.level"
+                          ng-click="ui.prioEditLevel=null;$event.stopPropagation()" title="完成">
+                    <i class="bi bi-check-lg" style="font-size:.72rem;color:var(--accent);"></i>
+                  </button>
+                  <button class="btn-icon flex-shrink-0"
+                          ng-if="ui.prioEditLevel===p.level&&settings.priorities.length>1"
+                          ng-click="removePriority(p.level);$event.stopPropagation()" title="刪除此等級">
+                    <i class="bi bi-trash" style="font-size:.72rem;color:#e53e3e;"></i>
+                  </button>
+                  <i class="bi bi-check fw-bold flex-shrink-0" style="color:var(--accent);"
+                     ng-if="form.priority==''+p.level&&ui.prioEditLevel!==p.level"></i>
+                </div>
+                <div class="p-dropdown-item border-top" style="color:var(--accent);"
+                     ng-click="addPriorityFromMenu();$event.stopPropagation()">
+                  <i class="bi bi-plus"></i><span>新增等級</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 第二列：啟用時間（左）＋ 截止期限（右） -->
+        <div class="row g-3 mb-3">
+          <div class="col-12 col-md-6">
+            <label class="d-block mb-1" style="font-size:.8rem;color:var(--muted);">
+              <i class="bi bi-play-circle me-1"></i>啟用時間
+            </label>
+            <input type="datetime-local" class="c-input" ng-model="form.startTime">
+            <small class="d-block mt-1" style="color:var(--muted);font-size:.73rem;">從該時間起常駐於清單，截止後未完成則移入未完成事項</small>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="d-block mb-1" style="font-size:.8rem;color:var(--muted);">
+              <i class="bi bi-clock me-1"></i>{{t.deadline}}
+            </label>
+            <input type="datetime-local" class="c-input" ng-model="form.deadline">
+          </div>
+        </div>
+
+        <!-- 第三列：提醒 + 地點 -->
+        <div class="row g-3 mb-3">
+          <div class="col-12 col-md-6">
+            <label class="d-block mb-1" style="font-size:.8rem;color:var(--muted);">
+              <i class="bi bi-bell me-1"></i>{{t.reminder}}
+            </label>
+            <div class="d-flex gap-2">
+              <select class="c-input flex-grow-1" ng-model="form.reminderType">
+                <option value="0">時間到時</option>
+                <option value="5">5 分鐘前</option>
+                <option value="15">15 分鐘前</option>
+                <option value="30">30 分鐘前</option>
+                <option value="60">1 小時前</option>
+                <option value="custom">自訂</option>
+                <option value="none">不提醒</option>
+              </select>
+              <input type="datetime-local" class="c-input" ng-model="form.customReminderTime"
+                     ng-if="form.reminderType==='custom'" style="width:52%;">
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="d-block mb-1" style="font-size:.8rem;color:var(--muted);">
+              <i class="bi bi-geo-alt me-1"></i>{{t.location}}
+            </label>
+            <div class="d-flex gap-2">
+              <input type="text" class="c-input flex-grow-1" ng-model="form.location">
+              <button type="button" class="btn btn-sm btn-outline-primary px-3" ng-click="openMap()">
+                <i class="bi bi-map"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 標籤 -->
+        <div class="mb-3">
+          <label class="d-block mb-2" style="font-size:.8rem;color:var(--muted);">
+            <i class="bi bi-tag me-1"></i>{{t.tags}}
+          </label>
+          <div class="d-flex flex-wrap gap-2">
+            <button type="button" class="tag-chip"
+                    ng-class="{sel:form.tags.indexOf(tag)>=0}"
+                    ng-repeat="tag in settings.tags" ng-click="toggleTag(tag)">{{tag}}</button>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="d-flex justify-content-end gap-2 mt-2">
+          <button type="button" class="btn btn-light" ng-click="cancelForm()">{{t.cancel}}</button>
+          <button type="submit" class="btn btn-danger" ng-disabled="!form.text.trim()">
+            {{editId ? t.updateTask : t.saveTask}}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- TASK LIST -->
+    <div class="mt-1">
+      <div class="text-center py-5" style="color:var(--muted);" ng-if="!_cur.length">
+        <i class="bi bi-check-all d-block mb-2" style="font-size:2.5rem;opacity:.25;"></i>
+        {{t.noTasks}}
+      </div>
+      <div class="task-item"
+           ng-repeat="task in _cur track by task.id"
+           ng-class="{done:task.completed,dragging:dnd.dragId===task.id,'drop-before':dnd.drop&&dnd.drop.id===task.id&&dnd.drop.pos==='before','drop-after':dnd.drop&&dnd.drop.id===task.id&&dnd.drop.pos==='after'}"
+           ng-style="{'border-left-color':getPrioColor(task.priority)}"
+           draggable="{{task.completed?'false':'true'}}"
+           task-dnd="task.id">
+        <div class="d-flex align-items-start gap-3">
+          <button class="btn-icon mt-1 flex-shrink-0" type="button"
+                  ng-click="toggleTask(task.id);$event.stopPropagation()">
+            <i class="bi fs-5" ng-class="task.completed?'bi-check-circle-fill':'bi-circle'"
+               style="color:{{getPrioColor(task.priority)}}"></i>
+          </button>
+          <div class="flex-grow-1 min-w-0" style="cursor:pointer;" ng-click="editTask(task)">
+            <div class="fw-medium d-flex align-items-center gap-1">
+              <i class="bi bi-flag-fill flex-shrink-0" style="font-size:.7rem;color:{{getPrioColor(task.priority)}}"></i>
+              <span ng-class="{'text-decoration-line-through text-muted':task.completed}">{{task.text}}</span>
+            </div>
+            <p class="text-pre mt-1 mb-0" style="font-size:.83rem;color:var(--muted);" ng-if="task.description">{{task.description}}</p>
+            <div class="mt-2" ng-if="task.steps&&task.steps.length">
+              <div class="d-flex align-items-center gap-2 mb-1" ng-repeat="s in task.steps track by s.id">
+                <button class="btn-icon p-0" type="button" ng-click="toggleListStep(task.id,s.id);$event.stopPropagation()">
+                  <i class="bi" ng-class="s.completed?'bi-check-circle-fill':'bi-circle'"
+                     style="font-size:.78rem;color:{{getPrioColor(task.priority)}}"></i>
+                </button>
+                <span style="font-size:.82rem;color:var(--muted);"
+                      ng-class="{'text-decoration-line-through opacity-50':s.completed}">{{s.text}}</span>
+              </div>
+            </div>
+            <div class="d-flex flex-wrap gap-3 mt-2 meta-row">
+              <span class="deadline-text" ng-if="task.deadline"><i class="bi bi-clock me-1"></i>{{formatDT(task.deadline)}}</span>
+              <span ng-if="task.location" style="color:#3182ce;"><i class="bi bi-geo-alt me-1"></i>{{task.location}}</span>
+              <span ng-if="task.tags&&task.tags.length"><i class="bi bi-tag me-1"></i>{{task.tags.join(', ')}}</span>
+            </div>
+          </div>
+          <div class="task-actions flex-shrink-0">
+            <button class="btn-icon" type="button" ng-click="deleteTask(task.id);$event.stopPropagation()" title="刪除">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CALENDAR TAB (Outlook style) ===== -->
+  <div class="cal-main" ng-if="tab==='calendar'">
+    <!-- 月份導覽：左右箭頭在兩側，年月置中 -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <button class="cal-nav-btn" ng-click="prevMonth()"><i class="bi bi-chevron-left"></i></button>
+
+      <div class="d-flex align-items-center gap-2">
+        <!-- 年份選擇器 -->
+        <div class="cal-year-wrap">
+          <div class="year-picker-overlay" ng-if="ui.isYearPickerOpen" ng-click="ui.isYearPickerOpen=false"></div>
+          <button type="button" class="cal-year-btn" title="點擊選擇年份"
+                  ng-click="ui.isYearPickerOpen=!ui.isYearPickerOpen">{{calYear}}</button>
+          <div class="year-picker-menu" ng-if="ui.isYearPickerOpen">
+            <div class="year-picker-grid">
+              <button type="button" class="year-picker-item"
+                      ng-repeat="y in calYearList track by y"
+                      ng-class="{'yp-active':y===calYear}"
+                      ng-click="selectCalYear(y)">{{y}}</button>
+            </div>
+          </div>
+        </div>
+        <span class="fw-bold" style="font-size:1.35rem;">年 {{MONTHS[calMonth.getMonth()]}}</span>
+      </div>
+
+      <button class="cal-nav-btn" ng-click="nextMonth()"><i class="bi bi-chevron-right"></i></button>
+    </div>
+
+    <!-- Outlook 月曆格 -->
+    <div class="outlook-wrap">
+      <div class="outlook-header-row">
+        <div class="outlook-wday" ng-repeat="d in weekDays">{{d}}</div>
+      </div>
+      <div class="outlook-cells">
+        <div class="outlook-cell"
+             ng-repeat="cell in _calCells track by cell.date"
+             ng-class="{'other-month':!cell.inMonth}">
+          <div class="d-flex align-items-center">
+            <div class="cal-cell-num"
+                 ng-class="{'is-today':cell.isToday,'other-month-num':!cell.inMonth}"
+                 ng-style="{'color':cell.inMonth?'var(--text)':'var(--muted)'}"
+                 ng-click="calGoDate(cell.date)">{{cell.day}}</div>
+          </div>
+          <button class="cal-cell-add" type="button" ng-click="calAddForDate(cell.date)" title="新增任務">
+            <i class="bi bi-plus-circle"></i>
+          </button>
+          <div class="cal-chip"
+               ng-repeat="task in cell.tasks | limitTo:3 track by task.id"
+               ng-style="{'background':getPrioColor(task.priority)}"
+               ng-class="{'done-chip':task.completed}"
+               ng-click="calEditTask(task);$event.stopPropagation()"
+               title="{{task.text}}">
+            <i class="bi bi-check-circle-fill me-1" ng-if="task.completed" style="font-size:.6rem;"></i>{{task.text}}
+          </div>
+          <div class="cal-more" ng-if="cell.tasks.length>3" ng-click="calGoDate(cell.date)">
+            +{{cell.tasks.length-3}} 更多
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== RIGHT PANEL ===== -->
+  <div class="right-panel" ng-if="tab==='today'">
+    <div class="cal-header" ng-if="tab==='today'">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0">{{calMonthLabel()}}</h6>
+        <div class="d-flex gap-1">
+          <button class="btn btn-sm p-1" ng-click="prevMonth()"><i class="bi bi-chevron-left"></i></button>
+          <button class="btn btn-sm p-1" ng-click="nextMonth()"><i class="bi bi-chevron-right"></i></button>
+        </div>
+      </div>
+      <div class="cal-grid mb-2">
+        <div class="text-center fw-medium" style="font-size:.72rem;color:var(--muted);"
+             ng-repeat="d in weekDays">{{d}}</div>
+      </div>
+      <div class="cal-grid">
+        <div ng-repeat="b in calBlanks() track by $index"></div>
+        <div ng-repeat="day in calDays()" class="d-flex justify-content-center">
+          <button class="cal-day-btn" ng-class="{sel:isSelDay(day)}" ng-click="selectDay(day)">
+            {{day}}
+            <span class="cal-dot" ng-if="dayHasTasks(day)"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="overdue-area">
+      <div class="d-flex align-items-center gap-2 mb-3 fw-bold" style="color:var(--accent);">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <h6 class="mb-0">{{t.overdue}}</h6>
+      </div>
+      <p style="font-size:.82rem;color:var(--muted);" ng-if="!_overdue.length">目前沒有過期未完成項目。</p>
+      <div class="overdue-card" ng-repeat="task in _overdue track by task.id" ng-click="editTask(task)">
+        <div class="d-flex justify-content-between align-items-start mb-1">
+          <span class="fw-medium" style="font-size:.87rem;color:var(--accent);">{{task.text}}</span>
+          <button class="btn-icon ms-2 flex-shrink-0" type="button"
+                  ng-click="$event.stopPropagation();toggleTask(task.id)">
+            <i class="bi bi-check-circle" style="font-size:.95rem;"></i>
+          </button>
+        </div>
+        <small style="color:var(--muted);">截止: {{formatDT(task.deadline)}}</small>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main-wrap -->
+
+<script>
+/* ===== Firebase 設定（請將下方 placeholder 替換為你的 firebaseConfig） ===== */
+var firebaseConfig = {
+  apiKey:            "YOUR_API_KEY",
+  authDomain:        "YOUR_PROJECT.firebaseapp.com",
+  projectId:         "YOUR_PROJECT_ID",
+  storageBucket:     "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId:             "YOUR_APP_ID"
+};
+firebase.initializeApp(firebaseConfig);
+var db   = firebase.firestore();
+var auth = firebase.auth();
+/* ===================================================================== */
+
+var _lmap = null, _lmarker = null;
+
+angular.module('todoApp', [])
+
+/* ===== Leaflet Map Directive ===== */
+.directive('lfMapInit', ['$timeout', '$http', function($timeout, $http) {
+  return {
+    restrict: 'A',
+    link: function(scope, el) {
+      $timeout(function() {
+        _lmap = L.map(el[0]).setView([25.0330, 121.5654], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+          maxZoom: 19
+        }).addTo(_lmap);
+        _lmarker = null;
+
+        /* 點擊地圖 → 立即顯示座標，再 reverse geocode 取得地名 */
+        _lmap.on('click', function(e) {
+          var lat = e.latlng.lat, lng = e.latlng.lng;
+          if (_lmarker) _lmap.removeLayer(_lmarker);
+          _lmarker = L.marker([lat, lng]).addTo(_lmap);
+          var fallback = lat.toFixed(5) + ', ' + lng.toFixed(5);
+          /* 立即更新座標（此處在 Leaflet 事件外，需要 $apply） */
+          scope.$apply(function() { scope.ui.mapSearch = fallback; });
+          /* 非同步取地址（$http 內部已包 $apply，不需要再包一層） */
+          $http.get('https://nominatim.openstreetmap.org/reverse', {
+            params: {lat: lat, lon: lng, format: 'json'},
+            headers: {'Accept-Language': 'zh-TW,zh;q=0.9'}
+          }).then(function(res) {
+            scope.ui.mapSearch = res.data.display_name || fallback;
+          });
+        });
+
+        /* 若已有地址，初始化時 geocode 顯示位置 */
+        var initQ = scope.ui.mapSearch && scope.ui.mapSearch.trim();
+        if (initQ) {
+          $http.get('https://nominatim.openstreetmap.org/search', {
+            params: {q: initQ, format: 'json', limit: 1},
+            headers: {'Accept-Language': 'zh-TW,zh;q=0.9'}
+          }).then(function(res) {
+            if (res.data && res.data.length) {
+              var lat = parseFloat(res.data[0].lat), lng = parseFloat(res.data[0].lon);
+              if (_lmarker) _lmap.removeLayer(_lmarker);
+              _lmarker = L.marker([lat, lng]).addTo(_lmap);
+              _lmap.setView([lat, lng], 15);
+            }
+          });
+        }
+      }, 250);
+    }
+  };
+}])
+
+/* ===== Task Drag-and-Drop Directive ===== */
+.directive('taskDnd', function() {
+  return {
+    restrict: 'A',
+    link: function(scope, el, attrs) {
+      var taskId = scope.$eval(attrs.taskDnd);
+      var el0 = el[0];
+      el0.addEventListener('dragstart', function(e) {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', String(taskId));
+        setTimeout(function() { el0.classList.add('dragging'); }, 0);
+        scope.$apply(function() { scope.dnd.dragId = taskId; });
+      });
+      el0.addEventListener('dragend', function() {
+        el0.classList.remove('dragging');
+        scope.$apply(function() { scope.dnd.dragId = null; scope.dnd.drop = null; });
+      });
+      el0.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        var rect = el0.getBoundingClientRect();
+        var pos = e.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
+        scope.$apply(function() { scope.dnd.drop = {id: taskId, pos: pos}; });
+      });
+      el0.addEventListener('dragleave', function(e) {
+        if (!el0.contains(e.relatedTarget)) {
+          scope.$apply(function() { if (scope.dnd.drop && scope.dnd.drop.id === taskId) scope.dnd.drop = null; });
+        }
+      });
+      el0.addEventListener('drop', function(e) {
+        e.preventDefault();
+        scope.$apply(function() {
+          var drop = scope.dnd.drop;
+          if (scope.dnd.dragId && scope.dnd.dragId !== taskId && drop) {
+            scope.reorderTask(scope.dnd.dragId, taskId, drop.pos);
+          }
+          scope.dnd.dragId = null; scope.dnd.drop = null;
+        });
+      });
+    }
+  };
+})
+
+/* ===== Step Drag-and-Drop Directive ===== */
+.directive('stepDnd', function() {
+  return {
+    restrict: 'A',
+    link: function(scope, el, attrs) {
+      var stepId = function() { return scope.$eval(attrs.stepDnd); };
+      var el0 = el[0];
+      el0.addEventListener('dragstart', function(e) {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', String(stepId()));
+        setTimeout(function() { el0.classList.add('step-dragging'); }, 0);
+        scope.$apply(function() { scope.stepDnd.dragId = stepId(); });
+      });
+      el0.addEventListener('dragend', function() {
+        el0.classList.remove('step-dragging');
+        scope.$apply(function() { scope.stepDnd.dragId = null; scope.stepDnd.dropId = null; scope.stepDnd.pos = null; });
+      });
+      el0.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        var rect = el0.getBoundingClientRect();
+        var pos = e.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
+        scope.$apply(function() { scope.stepDnd.dropId = stepId(); scope.stepDnd.pos = pos; });
+      });
+      el0.addEventListener('dragleave', function(e) {
+        if (!el0.contains(e.relatedTarget)) {
+          scope.$apply(function() { if (scope.stepDnd.dropId === stepId()) { scope.stepDnd.dropId = null; scope.stepDnd.pos = null; } });
+        }
+      });
+      el0.addEventListener('drop', function(e) {
+        e.preventDefault();
+        scope.$apply(function() {
+          var from = scope.stepDnd.dragId, to = scope.stepDnd.dropId, pos = scope.stepDnd.pos;
+          if (from !== null && to !== null && from !== to) {
+            scope.reorderFormStep(from, to, pos);
+          }
+          scope.stepDnd.dragId = null; scope.stepDnd.dropId = null; scope.stepDnd.pos = null;
+        });
+      });
+    }
+  };
+})
+
+/* ===== Main Controller ===== */
+.controller('AppCtrl', ['$scope', '$interval', '$http', '$timeout', function($scope, $interval, $http, $timeout) {
+
+  var TR = {
+    'zh-TW': {
+      today:'今日任務', calendar:'行事曆', settings:'系統設定',
+      addTask:'新增任務...', saveTask:'儲存任務', updateTask:'更新任務', cancel:'取消',
+      noTasks:'沒有安排任務，好好休息吧！', priority:'優先級', deadline:'截止期限',
+      reminder:'提醒時間（提前）', overdue:'未完成事項',
+      tags:'標籤管理', theme:'版面樣式', fontSize:'字體大小', language:'語系',
+      location:'地點', description:'任務描述', steps:'子步驟', stepPlaceholder:'輸入步驟內容...'
+    },
+    'en-US': {
+      today:'Today', calendar:'Calendar', settings:'Settings',
+      addTask:'Add task...', saveTask:'Save Task', updateTask:'Update', cancel:'Cancel',
+      noTasks:'No tasks. Relax!', priority:'Priority', deadline:'Deadline',
+      reminder:'Reminder', overdue:'Overdue',
+      tags:'Tags', theme:'Theme', fontSize:'Font Size', language:'Language',
+      location:'Location', description:'Description', steps:'Sub-steps', stepPlaceholder:'Enter step...'
+    }
+  };
+
+  function pad(n) { return String(n).padStart(2,'0'); }
+  function fmtDate(d) {
+    if (!d) return '';
+    var x = new Date(d);
+    if (isNaN(x.getTime())) return '';
+    return x.getFullYear()+'-'+pad(x.getMonth()+1)+'-'+pad(x.getDate());
+  }
+  function todayStr() { return fmtDate(new Date()); }
+
+  /* AngularJS datetime-local input 會將 ng-model 轉成 Date 物件，統一轉回字串 */
+  function normalizeDeadline(v) {
+    if (!v) return '';
+    if (v instanceof Date) {
+      if (isNaN(v.getTime())) return '';
+      return v.getFullYear()+'-'+pad(v.getMonth()+1)+'-'+pad(v.getDate())
+             +'T'+pad(v.getHours())+':'+pad(v.getMinutes());
+    }
+    return String(v);
+  }
+
+  $scope.formatDT = function(iso) {
+    if (!iso) return '';
+    var d = new Date(iso);
+    return fmtDate(d)+' '+pad(d.getHours())+':'+pad(d.getMinutes());
+  };
+
+  /* Auth (Firebase) */
+  $scope.currentUser = null;
+  $scope.authLoading = true;
+  $scope.authData = {mode: 'login', email: '', password: '', error: ''};
+  var _uid = null;
+  var _saveTimer = null;
+  var _wasGuest = localStorage.getItem('tfp_guestMode') === '1';
+
+  /* Settings — 從 localStorage 立即載入（避免畫面閃爍），登入後再由 Firestore 覆蓋 */
+  var savedS = {};
+  try { savedS = JSON.parse(localStorage.getItem('tfp_settings')||'{}'); } catch(e){}
+  $scope.settings = angular.extend({
+    tags:['工作','個人','緊急','專案'], language:'zh-TW', theme:'light', fontSize:'md',
+    accentColor:'#e53e3e',
+    priorities:[
+      {level:1,color:'#dc2626',label:'level 1'},{level:2,color:'#d97706',label:'level 2'},
+      {level:3,color:'#16a34a',label:'level 3'},{level:4,color:'#2563eb',label:'level 4'},
+      {level:5,color:'#7c3aed',label:'level 5'}
+    ]
+  }, savedS);
+  /* 舊版 P1/P2 標籤遷移 */
+  if ($scope.settings.priorities && $scope.settings.priorities[0] && /^P\d+$/.test($scope.settings.priorities[0].label)) {
+    $scope.settings.priorities = $scope.settings.priorities.map(function(p){
+      return {level:p.level, color:p.color, label:'level '+p.level};
+    });
+  }
+
+  var MONTHS_ZH = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  var MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  $scope.t = TR[$scope.settings.language];
+  $scope.MONTHS = $scope.settings.language==='zh-TW' ? MONTHS_ZH : MONTHS_EN;
+  $scope.weekDays = $scope.settings.language==='zh-TW' ? ['日','一','二','三','四','五','六'] : ['Su','Mo','Tu','We','Th','Fr','Sa'];
+
+  $scope.onLangChange = function() {
+    $scope.t = TR[$scope.settings.language];
+    $scope.MONTHS = $scope.settings.language==='zh-TW' ? MONTHS_ZH : MONTHS_EN;
+    $scope.weekDays = $scope.settings.language==='zh-TW' ? ['日','一','二','三','四','五','六'] : ['Su','Mo','Tu','We','Th','Fr','Sa'];
+  };
+
+  /* Tasks — 訪客預設從 localStorage 載入；登入後由 Firestore 覆蓋 */
+  var savedT = [];
+  try { savedT = JSON.parse(localStorage.getItem('tfp_tasks')||'[]'); } catch(e){}
+  $scope.tasks = savedT.length ? savedT : [
+    {id:1,text:'回覆客戶重要郵件',description:'記得附上最新的產品型錄與報價單。',
+     date:todayStr(),completed:false,isOverdue:false,priority:'1',deadline:'',
+     reminderType:'0',customReminderTime:'',calculatedReminder:null,
+     tags:['工作','緊急'],location:'',
+     steps:[{id:101,text:'整理報價單',completed:true},{id:102,text:'寄出郵件',completed:false}]}
+  ];
+
+  /* 儲存策略：訪客 → localStorage；登入用戶 → Firestore（防抖動 1.5s） */
+  function saveToFirestore() {
+    if (!_uid) return;
+    var data = JSON.parse(JSON.stringify({tasks: $scope.tasks, settings: $scope.settings}));
+    db.collection('users').doc(_uid).set(data).catch(function(e){
+      console.error('Firestore 儲存失敗:', e);
+    });
+  }
+  function scheduleSave() {
+    if ($scope.currentUser === '__guest__' || !$scope.currentUser) {
+      try{localStorage.setItem('tfp_tasks', JSON.stringify($scope.tasks));}catch(e){}
+      try{localStorage.setItem('tfp_settings', JSON.stringify($scope.settings));}catch(e){}
+    } else if (_uid) {
+      if (_saveTimer) clearTimeout(_saveTimer);
+      _saveTimer = setTimeout(saveToFirestore, 1500);
+    }
+  }
+  $scope.$watch('tasks', scheduleSave, true);
+  $scope.$watch('settings', scheduleSave, true);
+
+  /* UI state — 全部放在 ui 物件，解決 ng-if 子作用域問題 */
+  $scope.tab = 'today';
+  $scope.selectedDate = new Date();
+  $scope.calMonth = new Date();
+  $scope.calYear = new Date().getFullYear();
+  $scope.isAdding = false;
+  $scope.editId = null;
+  $scope.notifications = [];
+  $scope.showMapModal = false;
+  $scope.dnd = {dragId:null, drop:null};
+  $scope.stepDnd = {dragId:null, dropId:null, pos:null};
+  $scope.ui = {
+    newStepText:'', newTagInput:'', mapSearch:'',
+    isPrioOpen: false,          /* 優先級下拉 */
+    isYearPickerOpen: false,    /* 年份選擇器 */
+    stepEditId: null,           /* 正在編輯的步驟 id */
+    prioEditLevel: null         /* 正在編輯的優先級 level */
+  };
+
+  /* Derived lists */
+  $scope._cur = []; $scope._overdue = []; $scope._calCells = [];
+  $scope.pendingCount = 0;
+
+  function getTasksForDate(ds) {
+    return $scope.tasks.filter(function(t){ return t.date===ds; });
+  }
+
+  function rebuildLists() {
+    var ds = fmtDate($scope.selectedDate);
+    $scope._cur = $scope.tasks
+      .filter(function(t){
+        if(t.isOverdue) return false;
+        if(t.startTime){
+          /* 有啟用時間：從啟用日起常駐顯示（直到 deadline 觸發 isOverdue） */
+          return ds >= t.startTime.substring(0,10);
+        }
+        return t.date===ds;
+      })
+      .sort(function(a,b){ return a.completed===b.completed?0:a.completed?1:-1; });
+
+    $scope._overdue = $scope.tasks
+      .filter(function(t){ return t.isOverdue&&!t.completed; })
+      /* 排序：啟用日期由舊到新；無啟用時間則用 task.date */
+      .sort(function(a,b){
+        var at=a.startTime||a.date, bt=b.startTime||b.date;
+        return new Date(at)-new Date(bt);
+      });
+
+    $scope.pendingCount = $scope.tasks.filter(function(t){
+      var today=todayStr();
+      if(t.startTime) return t.startTime.substring(0,10)<=today&&!t.completed&&!t.isOverdue;
+      return t.date===today&&!t.completed&&!t.isOverdue;
+    }).length;
+
+    /* Outlook calendar cells */
+    var y=$scope.calMonth.getFullYear(), m=$scope.calMonth.getMonth();
+    var firstDay=new Date(y,m,1).getDay();
+    var daysInMonth=new Date(y,m+1,0).getDate();
+    var prevDays=new Date(y,m,0).getDate();
+    var today=todayStr();
+    var cells=[];
+    for(var i=0;i<firstDay;i++){
+      var d=prevDays-firstDay+1+i;
+      var ds2=fmtDate(new Date(y,m-1,d));
+      cells.push({day:d,inMonth:false,isToday:false,date:ds2,tasks:getTasksForDate(ds2)});
+    }
+    for(var d2=1;d2<=daysInMonth;d2++){
+      var ds3=fmtDate(new Date(y,m,d2));
+      cells.push({day:d2,inMonth:true,isToday:ds3===today,date:ds3,tasks:getTasksForDate(ds3)});
+    }
+    var total=Math.ceil((firstDay+daysInMonth)/7)*7;
+    var rem=total-firstDay-daysInMonth;
+    for(var d3=1;d3<=rem;d3++){
+      var ds4=fmtDate(new Date(y,m+1,d3));
+      cells.push({day:d3,inMonth:false,isToday:false,date:ds4,tasks:getTasksForDate(ds4)});
+    }
+    $scope._calCells = cells;
+  }
+
+  $scope.$watch('tasks', rebuildLists, true);
+  $scope.$watch(function(){
+    return fmtDate($scope.selectedDate)+'|'+$scope.calMonth.getFullYear()+'-'+$scope.calMonth.getMonth();
+  }, rebuildLists);
+
+  /* Priority helpers */
+  $scope.getPrioColor = function(level) {
+    var p=$scope.settings.priorities.find(function(p){return String(p.level)===String(level);});
+    return p?p.color:'#a0aec0';
+  };
+  $scope.getPrioLabel = function(level) {
+    var p=$scope.settings.priorities.find(function(p){return String(p.level)===String(level);});
+    return p?p.label:'level '+level;
+  };
+  $scope.pickPrio = function(level) { $scope.form.priority=String(level); $scope.ui.isPrioOpen=false; $scope.ui.prioEditLevel=null; };
+  /* 關閉下拉時自動清除編輯狀態 */
+  $scope.$watch('ui.isPrioOpen', function(val){ if(!val) $scope.ui.prioEditLevel=null; });
+  /* 優先級列表點擊：編輯中則不觸發 pickPrio */
+  $scope.prioItemClick = function(level) { if($scope.ui.prioEditLevel!==level) $scope.pickPrio(level); };
+  $scope.addPriority = function() {
+    var levels=$scope.settings.priorities.map(function(p){return p.level;});
+    var next=Math.max.apply(null,levels)+1;
+    var palette=['#f59e0b','#06b6d4','#ec4899','#84cc16','#f97316','#6366f1'];
+    $scope.settings.priorities.push({level:next,color:palette[(next-1)%palette.length],label:'level '+next});
+  };
+  $scope.addPriorityFromMenu = function() {
+    $scope.addPriority();
+    var newLevel=$scope.settings.priorities[$scope.settings.priorities.length-1].level;
+    $scope.form.priority=String(newLevel);
+    $scope.ui.isPrioOpen=false;
+  };
+  $scope.removePriority = function(level) {
+    if($scope.settings.priorities.length<=1)return;
+    $scope.settings.priorities=$scope.settings.priorities.filter(function(p){return p.level!==level;});
+  };
+
+  /* Background daemon */
+  var notifiedIds={};
+  $interval(function(){
+    var now=new Date();
+    $scope.tasks.forEach(function(task){
+      if(task.completed)return;
+      if(task.deadline&&!task.isOverdue&&now>=new Date(task.deadline))task.isOverdue=true;
+      if(task.calculatedReminder&&!notifiedIds[task.id]&&now>=new Date(task.calculatedReminder)){
+        notifiedIds[task.id]=true;
+        $scope.notifications.push({id:Date.now()+Math.random(),taskId:task.id,message:task.text,
+          deadlineDisplay:task.deadline?$scope.formatDT(task.deadline):'無期限'});
+      }
+    });
+  }, 5000);
+
+  $scope.dismissNotif = function(id){ $scope.notifications=$scope.notifications.filter(function(n){return n.id!==id;}); };
+
+  /* Tab */
+  $scope.setTab = function(t) {
+    $scope.tab=t;
+    if(t==='today'){ $scope.selectedDate=new Date(); $scope.calMonth=new Date(); $scope.calYear=new Date().getFullYear(); }
+  };
+
+  /* Date helpers */
+  $scope.isSelToday = function(){ return fmtDate($scope.selectedDate)===todayStr(); };
+  $scope.selDateLabel = function(){
+    var d=$scope.selectedDate;
+    return (d.getMonth()+1)+'月'+d.getDate()+'日';
+  };
+
+  /* Form */
+  var emptyForm=function(){return {text:'',description:'',priority:'1',startTime:null,deadline:null,reminderType:'15',customReminderTime:'',tags:[],location:'',steps:[]};};
+  $scope.form=emptyForm();
+
+  $scope.startAdd=function(){ $scope.form=emptyForm(); $scope.editId=null; $scope.isAdding=true; };
+  $scope.cancelForm=function(){
+    $scope.isAdding=false; $scope.editId=null; $scope.form=emptyForm();
+    $scope.ui.isPrioOpen=false; $scope.ui.stepEditId=null; $scope.ui.prioEditLevel=null;
+  };
+
+  $scope.saveTask=function(e){
+    if(e)e.preventDefault();
+    if(!$scope.form.text.trim())return;
+    var targetDate=fmtDate($scope.selectedDate);
+    var startTimeStr=normalizeDeadline($scope.form.startTime);
+    var deadlineStr=normalizeDeadline($scope.form.deadline);
+    /* task.date 決定在行事曆上顯示的位置：有啟用時間則用啟用日期，否則用截止日期或今日 */
+    var finalDate=startTimeStr?startTimeStr.substring(0,10):(deadlineStr?deadlineStr.substring(0,10):targetDate);
+    var rt=$scope.form.reminderType, calcReminder=null;
+    if(rt==='custom'){ calcReminder=normalizeDeadline($scope.form.customReminderTime)||deadlineStr||null; }
+    else if(deadlineStr&&rt!=='none'){
+      calcReminder=new Date(new Date(deadlineStr).getTime()-(parseInt(rt)||0)*60000).toISOString();
+    }
+    var data=angular.copy($scope.form);
+    data.startTime=startTimeStr;
+    data.deadline=deadlineStr;
+    data.date=finalDate; data.calculatedReminder=calcReminder; data.isOverdue=false;
+    if($scope.editId){
+      var idx=$scope.tasks.findIndex(function(t){return t.id===$scope.editId;});
+      if(idx>=0){angular.extend($scope.tasks[idx],data);delete notifiedIds[$scope.editId];}
+    } else {
+      data.id=Date.now(); data.completed=false; $scope.tasks.push(data);
+    }
+    $scope.cancelForm();
+  };
+
+  $scope.editTask=function(task){
+    $scope.form={text:task.text,description:task.description||'',priority:task.priority||'1',
+      startTime:task.startTime ? new Date(task.startTime) : null,
+      deadline:task.deadline ? new Date(task.deadline) : null,
+      reminderType:task.reminderType||'0',
+      customReminderTime:task.customReminderTime ? new Date(task.customReminderTime) : null,
+      tags:angular.copy(task.tags||[]),
+      location:task.location||'',steps:angular.copy(task.steps||[])};
+    $scope.editId=task.id; $scope.isAdding=true;
+    if($scope.tab==='settings')$scope.tab='today';
+  };
+
+  $scope.toggleTask=function(id){
+    var t=$scope.tasks.find(function(t){return t.id===id;});
+    if(t){t.completed=!t.completed;t.isOverdue=false;}
+  };
+  $scope.deleteTask=function(id){ $scope.tasks=$scope.tasks.filter(function(t){return t.id!==id;}); };
+
+  $scope.reorderTask=function(draggedId,targetId,pos){
+    var di=$scope.tasks.findIndex(function(t){return t.id===draggedId;});
+    if(di<0)return;
+    var dragged=$scope.tasks.splice(di,1)[0];
+    var ti=$scope.tasks.findIndex(function(t){return t.id===targetId;});
+    if(ti<0){$scope.tasks.push(dragged);return;}
+    $scope.tasks.splice(pos==='before'?ti:ti+1,0,dragged);
+  };
+
+  /* Steps */
+  $scope.addFormStep=function(){
+    var txt=$scope.ui.newStepText.trim();
+    if(txt){ $scope.form.steps.push({id:Date.now(),text:txt,completed:false}); $scope.ui.newStepText=''; }
+  };
+  $scope.stepKeydown=function(e){ if(e.key==='Enter'){e.preventDefault();$scope.addFormStep();} };
+  $scope.stepEditKeydown=function(e){ if(e.key==='Enter'||e.key==='Escape'){e.preventDefault();$scope.ui.stepEditId=null;} };
+  $scope.removeFormStep=function(id){ $scope.form.steps=$scope.form.steps.filter(function(s){return s.id!==id;}); };
+  $scope.toggleFormStep=function(id){ var s=$scope.form.steps.find(function(s){return s.id===id;}); if(s)s.completed=!s.completed; };
+  $scope.reorderFormStep=function(dragId,targetId,pos){
+    var di=$scope.form.steps.findIndex(function(s){return s.id===dragId;});
+    if(di<0)return;
+    var dragged=$scope.form.steps.splice(di,1)[0];
+    var ti=$scope.form.steps.findIndex(function(s){return s.id===targetId;});
+    if(ti<0){$scope.form.steps.push(dragged);return;}
+    $scope.form.steps.splice(pos==='before'?ti:ti+1,0,dragged);
+  };
+  $scope.toggleListStep=function(taskId,stepId){
+    var task=$scope.tasks.find(function(t){return t.id===taskId;});
+    if(task){var s=task.steps.find(function(s){return s.id===stepId;});if(s)s.completed=!s.completed;}
+  };
+
+  /* Tags */
+  $scope.toggleTag=function(tag){ var i=$scope.form.tags.indexOf(tag); if(i>=0)$scope.form.tags.splice(i,1); else $scope.form.tags.push(tag); };
+  $scope.addTag=function(){ var v=($scope.ui.newTagInput||'').trim(); if(v&&$scope.settings.tags.indexOf(v)<0){$scope.settings.tags.push(v);$scope.ui.newTagInput='';} };
+  $scope.tagKeydown=function(e){ if(e.key==='Enter'){e.preventDefault();$scope.addTag();} };
+  $scope.removeTag=function(tag){ $scope.settings.tags=$scope.settings.tags.filter(function(t){return t!==tag;}); };
+
+  /* Map */
+  $scope.openMap=function(){ $scope.ui.mapSearch=$scope.form.location||''; $scope.showMapModal=true; };
+  $scope.closeMap=function(){ $scope.showMapModal=false; _lmap=null; _lmarker=null; };
+  $scope.confirmMap=function(){ $scope.form.location=$scope.ui.mapSearch; $scope.showMapModal=false; _lmap=null; _lmarker=null; };
+  $scope.searchOnMap=function(){
+    var q=($scope.ui.mapSearch||'').trim();
+    if(!q)return;
+    if(!_lmap){ $timeout(function(){$scope.searchOnMap();},300); return; }
+    $http.get('https://nominatim.openstreetmap.org/search',{
+      params:{q:q,format:'json',limit:1},
+      headers:{'Accept-Language':'zh-TW,zh;q=0.9'}
+    }).then(function(res){
+      if(res.data&&res.data.length){
+        var lat=parseFloat(res.data[0].lat),lng=parseFloat(res.data[0].lon);
+        if(_lmarker)_lmap.removeLayer(_lmarker);
+        _lmarker=L.marker([lat,lng]).addTo(_lmap);
+        _lmap.setView([lat,lng],15);
+        $scope.ui.mapSearch=res.data[0].display_name;
+      }
+    });
+  };
+  $scope.mapKeydown=function(e){ if(e.key==='Enter'){e.preventDefault();$scope.searchOnMap();} };
+
+  /* Mini Calendar */
+  var MONTHS_ZH2=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  var MONTHS_EN2=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  $scope.calMonthLabel=function(){
+    var y=$scope.calMonth.getFullYear(),m=$scope.calMonth.getMonth();
+    return $scope.settings.language==='zh-TW'?y+' 年 '+MONTHS_ZH2[m]:MONTHS_EN2[m]+' '+y;
+  };
+  $scope.calBlanks=function(){ return new Array(new Date($scope.calMonth.getFullYear(),$scope.calMonth.getMonth(),1).getDay()); };
+  $scope.calDays=function(){
+    var total=new Date($scope.calMonth.getFullYear(),$scope.calMonth.getMonth()+1,0).getDate();
+    var a=[];for(var i=1;i<=total;i++)a.push(i);return a;
+  };
+  $scope.prevMonth=function(){ $scope.calMonth=new Date($scope.calMonth.getFullYear(),$scope.calMonth.getMonth()-1,1); $scope.calYear=$scope.calMonth.getFullYear(); buildCalYearList(); };
+  $scope.nextMonth=function(){ $scope.calMonth=new Date($scope.calMonth.getFullYear(),$scope.calMonth.getMonth()+1,1); $scope.calYear=$scope.calMonth.getFullYear(); buildCalYearList(); };
+  $scope.goToday=function(){ $scope.calMonth=new Date(); $scope.calYear=new Date().getFullYear(); buildCalYearList(); };
+  $scope.selectDay=function(d){ $scope.selectedDate=new Date($scope.calMonth.getFullYear(),$scope.calMonth.getMonth(),d); };
+  $scope.isSelDay=function(d){ return fmtDate(new Date($scope.calMonth.getFullYear(),$scope.calMonth.getMonth(),d))===fmtDate($scope.selectedDate); };
+  $scope.dayHasTasks=function(d){
+    var ds=fmtDate(new Date($scope.calMonth.getFullYear(),$scope.calMonth.getMonth(),d));
+    return $scope.tasks.some(function(t){return t.date===ds&&!t.isOverdue;});
+  };
+
+  /* Calendar year picker */
+  $scope.calYearList = [];
+  function buildCalYearList() {
+    var cur = $scope.calMonth.getFullYear();
+    var list = [];
+    for (var y = cur - 8; y <= cur + 8; y++) list.push(y);
+    $scope.calYearList = list;
+  }
+  buildCalYearList();
+
+  $scope.selectCalYear = function(y) {
+    $scope.calMonth = new Date(y, $scope.calMonth.getMonth(), 1);
+    $scope.calYear = y;
+    $scope.ui.isYearPickerOpen = false;
+    buildCalYearList();
+  };
+
+  /* Calendar tab actions */
+  $scope.calGoDate=function(dateStr){ $scope.selectedDate=new Date(dateStr+'T00:00:00'); $scope.tab='today'; };
+  $scope.calEditTask=function(task){
+    $scope.selectedDate=new Date(task.date+'T00:00:00');
+    $scope.tab='today';
+    $timeout(function(){ $scope.editTask(task); }, 0);
+  };
+  $scope.calAddForDate=function(dateStr){
+    $scope.selectedDate=new Date(dateStr+'T00:00:00');
+    $scope.tab='today';
+    $timeout(function(){ $scope.startAdd(); }, 0);
+  };
+
+  /* Font size: 套用到 html 根元素，讓 rem 單位全面縮放 */
+  function applyFontSize(val) {
+    var h = document.documentElement;
+    h.classList.remove('font-sm','font-md','font-lg');
+    if(val) h.classList.add('font-'+val);
+  }
+  applyFontSize($scope.settings.fontSize);
+  $scope.$watch('settings.fontSize', applyFontSize);
+
+  /* 元件顏色：同時寫入 <html> 與 <body>，避免 dark-theme 在 body 層攔截繼承 */
+  function applyAccentColor(color) {
+    if (!color) return;
+    var r=parseInt(color.slice(1,3),16), g=parseInt(color.slice(3,5),16), b=parseInt(color.slice(5,7),16);
+    var al = 'rgba('+r+','+g+','+b+',.15)';
+    document.documentElement.style.setProperty('--accent', color);
+    document.documentElement.style.setProperty('--accent-light', al);
+    document.body.style.setProperty('--accent', color);
+    document.body.style.setProperty('--accent-light', al);
+  }
+  applyAccentColor($scope.settings.accentColor);
+  $scope.$watch('settings.accentColor', applyAccentColor);
+
+  $scope.resetAccentColor = function() { $scope.settings.accentColor = '#e53e3e'; };
+
+  /* ===== Firebase Auth 函數 ===== */
+
+  /* Firestore 讀取使用者資料 */
+  function loadFromFirestore(uid) {
+    db.collection('users').doc(uid).get().then(function(doc) {
+      $scope.$apply(function() {
+        if (doc.exists()) {
+          var data = doc.data();
+          if (data.tasks && data.tasks.length) $scope.tasks = data.tasks;
+          if (data.settings && Object.keys(data.settings).length) {
+            angular.extend($scope.settings, data.settings);
+            applyFontSize($scope.settings.fontSize);
+            applyAccentColor($scope.settings.accentColor);
+          }
+        }
+        rebuildLists();
+      });
+    }).catch(function(e){ console.error('Firestore 讀取失敗:', e); });
+  }
+
+  /* Firebase Auth 狀態監聽（頁面載入 / 登入 / 登出皆觸發） */
+  auth.onAuthStateChanged(function(user) {
+    $scope.$apply(function() {
+      if (user) {
+        _uid = user.uid;
+        $scope.currentUser = user.email;
+        $scope.authLoading = false;
+        loadFromFirestore(user.uid);
+      } else if (_wasGuest) {
+        /* 訪客模式：沿用 localStorage 資料，不需 Firebase */
+        $scope.currentUser = '__guest__';
+        $scope.authLoading = false;
+      } else {
+        _uid = null;
+        $scope.currentUser = null;
+        $scope.authLoading = false;
+      }
+    });
+  });
+
+  /* Firebase 錯誤訊息中文化 */
+  var FB_ERR = {
+    'auth/email-already-in-use': '此電子郵件已被使用，請直接登入',
+    'auth/invalid-email':        '電子郵件格式不正確',
+    'auth/weak-password':        '密碼至少需要 6 個字元',
+    'auth/user-not-found':       '帳號不存在，請先註冊',
+    'auth/wrong-password':       '密碼錯誤，請重新輸入',
+    'auth/invalid-credential':   '電子郵件或密碼錯誤',
+    'auth/too-many-requests':    '嘗試次數過多，請稍後再試'
+  };
+
+  $scope.doAuth = function() {
+    var e = ($scope.authData.email||'').trim();
+    var p = ($scope.authData.password||'').trim();
+    if (!e || !p) { $scope.authData.error = '請填寫電子郵件與密碼'; return; }
+    $scope.authData.error = '';
+    var promise = $scope.authData.mode === 'register'
+      ? auth.createUserWithEmailAndPassword(e, p)
+      : auth.signInWithEmailAndPassword(e, p);
+    /* 成功由 onAuthStateChanged 自動處理；失敗在此顯示錯誤 */
+    promise.catch(function(err) {
+      $scope.$apply(function() {
+        $scope.authData.error = FB_ERR[err.code] || ('操作失敗：' + err.message);
+      });
+    });
+  };
+
+  $scope.doGuest = function() {
+    localStorage.setItem('tfp_guestMode', '1');
+    _wasGuest = true;
+    $scope.currentUser = '__guest__';
+    /* 訪客的任務已在初始化時從 localStorage 讀入 */
+  };
+
+  $scope.logout = function() {
+    var wasFirebase = $scope.currentUser !== '__guest__';
+    $scope.currentUser = null;
+    _uid = null;
+    $scope.tasks = [];
+    $scope.form = emptyForm();
+    $scope.isAdding = false;
+    $scope.editId = null;
+    localStorage.removeItem('tfp_guestMode');
+    _wasGuest = false;
+    if (wasFirebase) {
+      auth.signOut(); /* onAuthStateChanged 會再觸發，currentUser 已是 null 所以不影響 */
+    }
+  };
+
+}]);
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
