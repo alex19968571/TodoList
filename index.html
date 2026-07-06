@@ -25,7 +25,8 @@
     html.font-lg{font-size:21px;}
 
     /* ── SIDEBAR ── */
-    .sidebar{position:fixed;left:0;top:0;bottom:0;width:240px;background:var(--sidebar);border-right:1px solid var(--border);padding:1rem;display:flex;flex-direction:column;z-index:200;}
+    .sidebar{position:fixed;left:0;top:0;bottom:0;width:240px;background:rgba(247,250,252,0.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-right:1px solid rgba(226,232,240,0.7);padding:1rem;display:flex;flex-direction:column;z-index:200;}
+    body.dark-theme .sidebar{background:rgba(26,32,44,0.82);border-right-color:rgba(74,85,104,0.7);}
     .brand{display:flex;align-items:center;gap:.6rem;margin-bottom:2rem;padding:.25rem .5rem;}
     .brand-icon{width:34px;height:34px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem;}
     .brand-logo{width:34px;height:34px;object-fit:contain;flex-shrink:0;}
@@ -52,7 +53,8 @@
     .main-wrap{margin-left:240px;display:flex;min-height:100vh;}
     .tasks-panel{flex:1;overflow-y:auto;padding:2.5rem;border-right:1px solid var(--border);min-width:0;display:flex;flex-direction:column;}
     .week-form-card{order:10;}
-    .right-panel{width:320px;min-width:320px;display:flex;flex-direction:column;background:var(--sidebar);}
+    .right-panel{width:320px;min-width:320px;display:flex;flex-direction:column;background:rgba(247,250,252,0.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-left:1px solid rgba(226,232,240,0.7);}
+    body.dark-theme .right-panel{background:rgba(45,55,72,0.82);border-left-color:rgba(74,85,104,0.7);}
     .settings-panel{flex:1;overflow-y:auto;padding:2.5rem;}
 
     /* ── INPUTS ── */
@@ -124,17 +126,23 @@
     .outlook-header-row{display:grid;grid-template-columns:repeat(7,1fr);background:var(--hover);flex-shrink:0;}
     .outlook-wday{padding:.45rem;text-align:center;font-size:.75rem;font-weight:700;color:var(--muted);border-right:1px solid var(--border);}
     .outlook-wday:last-child{border-right:none;}
+    .outlook-weeks{flex:1;display:flex;flex-direction:column;}
+    .outlook-week-row{flex:1;}
+    .cal-span-inline{display:block;height:18px;line-height:18px;font-size:.69rem;margin:1px -4px;padding:0 2px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:0;transition:filter .12s;}
+    .cal-span-inline.span-round-left{border-top-left-radius:3px;border-bottom-left-radius:3px;margin-left:0;padding-left:5px;}
+    .cal-span-inline.span-round-right{border-top-right-radius:3px;border-bottom-right-radius:3px;margin-right:0;padding-right:5px;}
+    .cal-span-inline:hover{filter:brightness(1.14);}
     .outlook-cells{display:grid;grid-template-columns:repeat(7,1fr);flex:1;}
     .outlook-cell{min-height:calc((100vh - 240px) / 6);border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:5px 4px;position:relative;overflow:hidden;}
     .outlook-cell:nth-child(7n){border-right:none;}
-    .outlook-cell:nth-last-child(-n+7){border-bottom:none;}
+    .outlook-week-row:last-child .outlook-cell{border-bottom:none;}
     .outlook-cell.other-month{background:rgba(0,0,0,.018);}
     body.dark-theme .outlook-cell.other-month{background:rgba(255,255,255,.02);}
     .outlook-cell:hover .cal-cell-add{opacity:1;}
     .cal-cell-num{width:26px;height:26px;font-size:.8rem;font-weight:600;display:flex;align-items:center;justify-content:center;border-radius:50%;margin-bottom:3px;cursor:pointer;flex-shrink:0;}
     .cal-cell-num.is-today{background:var(--accent);color:#fff!important;}
     .cal-cell-num.other-month-num{color:var(--muted);font-weight:400;}
-    .cal-chip{display:block;font-size:.7rem;padding:2px 5px;border-radius:3px;color:#fff;cursor:pointer;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .cal-chip{display:block;font-size:.7rem;padding:2px 5px;border-radius:3px;color:#fff;cursor:pointer;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-sizing:border-box;}
     .cal-chip:hover{filter:brightness(1.15);}
     .cal-chip.done-chip{opacity:.55;text-decoration:line-through;}
     .cal-more{font-size:.68rem;color:var(--muted);cursor:pointer;padding:1px 4px;}
@@ -216,7 +224,27 @@
 
     /* ── 側欄使用者區域 ── */
     .sidebar-user{margin-top:auto;border-top:1px solid var(--border);padding:.75rem .5rem 0;}
-    .sidebar-avatar{width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.82rem;font-weight:700;}
+    .sidebar-avatar{width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.82rem;font-weight:700;overflow:hidden;cursor:pointer;transition:opacity .15s;}
+    .sidebar-avatar:hover{opacity:.82;}
+    .sidebar-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+    /* 背景圖浮動按鈕 FAB */
+    .bg-fab{position:fixed;bottom:1.75rem;right:1.75rem;z-index:400;width:44px;height:44px;border-radius:50%;background:var(--accent);color:#fff;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;font-size:1.05rem;transition:transform .15s,box-shadow .15s;}
+    .bg-fab:hover{transform:scale(1.1);box-shadow:0 6px 22px rgba(0,0,0,.35);}
+    .bg-fab.today-fab{right:calc(320px + 1.75rem);}
+    @media(max-width:991px){
+      .bg-fab{bottom:calc(68px + 1rem);}
+      .bg-fab.today-fab{right:1.75rem;}
+    }
+    /* 日期格背景圖設定按鈕 */
+    .cal-cell-bg{position:absolute;bottom:4px;right:4px;background:none;border:none;color:var(--muted);cursor:pointer;opacity:0;transition:opacity .15s;padding:0;line-height:1;font-size:.82rem;}
+    .outlook-cell:hover .cal-cell-bg{opacity:1;}
+    .cal-cell-bg:hover{color:var(--accent);}
+    /* 有背景圖的 cell，chip 文字加強對比 */
+    .has-bg-img .cal-cell-num{text-shadow:0 1px 3px rgba(0,0,0,.5);}
+    .has-bg-img .cal-chip{box-shadow:0 1px 3px rgba(0,0,0,.3);}
+    /* 頭貼上傳 modal */
+    .avatar-preview{width:80px;height:80px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;margin:0 auto 1rem;overflow:hidden;}
+    .avatar-preview img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
 
     /* ── 布局面板 ── */
     .layout-panel{position:absolute;right:0;top:calc(100% + 8px);width:280px;background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:500;padding:4px 0;}
@@ -355,8 +383,11 @@
   <!-- 使用者登入區域 -->
   <div class="sidebar-user" ng-if="currentUser">
     <div class="d-flex align-items-center gap-2">
-      <div class="sidebar-avatar">
-        {{currentUser==='__guest__'?'G':currentUser.charAt(0).toUpperCase()}}
+      <div class="sidebar-avatar" ng-click="openAvatarEditor()" title="點擊更換頭貼">
+        <img ng-if="settings.avatarUrl && currentUser!=='__guest__'" ng-src="{{settings.avatarUrl}}" alt="avatar">
+        <span ng-if="!(settings.avatarUrl && currentUser!=='__guest__')">
+          {{currentUser==='__guest__'?'G':currentUser.charAt(0).toUpperCase()}}
+        </span>
       </div>
       <div class="flex-grow-1 min-w-0">
         <div style="font-size:.82rem;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
@@ -435,13 +466,19 @@
   </div>
 
   <!-- ===== TODAY TAB ===== -->
-  <div class="tasks-panel" ng-if="tab==='today'">
+  <div class="tasks-panel" ng-if="tab==='today'"
+       ng-style="settings.todayBg ? {'background-image':'url('+settings.todayBg+')','background-size':'cover','background-position':'center','background-attachment':'local'} : {}">
     <header class="mb-4">
       <div class="d-flex align-items-center justify-content-between">
         <h1 class="fw-bold mb-0" style="font-size:1.6rem;">
           <span ng-if="viewMode==='week'||isSelToday()">{{t.today}}</span>
           <span ng-if="viewMode==='list'&&!isSelToday()">{{selDateLabel()}}</span>
         </h1>
+        <div class="d-flex gap-2 align-items-center">
+        <button class="btn btn-sm btn-outline-secondary" ng-click="toggleNotif()"
+                title="{{settings.notifEnabled ? '關閉通知' : '開啟通知'}}">
+          <i class="bi" ng-class="settings.notifEnabled ? 'bi-bell-fill' : 'bi-bell-slash'"></i>
+        </button>
         <div class="position-relative" style="z-index:501;">
           <div class="layout-overlay" ng-show="layoutPanelOpen" ng-click="layoutPanelOpen=false;ui.prioFilterOpen=false"></div>
           <button class="btn btn-sm btn-outline-secondary" style="position:relative;" ng-click="layoutPanelOpen=!layoutPanelOpen" title="布局">
@@ -494,6 +531,12 @@
                     <i class="bi bi-chevron-down" style="font-size:.72rem;"></i>
                   </button>
                   <div class="prio-filter-menu" ng-if="ui.prioFilterOpen" ng-click="$event.stopPropagation()">
+                    <div class="priority-filter-item" style="border-bottom:1px solid var(--border);margin-bottom:4px;padding-bottom:4px;">
+                      <input type="checkbox" class="form-check-input" id="pf-all"
+                             ng-checked="filterPriorities.length===0"
+                             ng-click="clearPriorityFilter()">
+                      <label class="form-check-label fw-medium" for="pf-all">全選</label>
+                    </div>
                     <div ng-repeat="p in settings.priorities" class="priority-filter-item">
                       <input type="checkbox" class="form-check-input" id="pf-{{p.level}}"
                              ng-checked="filterPriorities.indexOf(p.level)>=0"
@@ -508,6 +551,7 @@
             </div>
           </div>
         </div>
+        </div><!-- /d-flex gap-2 bell+layout -->
       </div>
     </header>
 
@@ -855,7 +899,8 @@
   </div>
 
   <!-- ===== CALENDAR TAB (Outlook style) ===== -->
-  <div class="cal-main" ng-if="tab==='calendar'">
+  <div class="cal-main" ng-if="tab==='calendar'"
+       ng-style="settings.calBg ? {'background-image':'url('+settings.calBg+')','background-size':'cover','background-position':'center','background-attachment':'local'} : {}">
     <!-- 月份導覽：左右箭頭在兩側，年月置中 -->
     <div class="d-flex align-items-center justify-content-between mb-3">
       <button class="cal-nav-btn" ng-click="prevMonth()"><i class="bi bi-chevron-left"></i></button>
@@ -886,74 +931,53 @@
       <div class="outlook-header-row">
         <div class="outlook-wday" ng-repeat="d in weekDays">{{d}}</div>
       </div>
-      <div class="outlook-cells">
-        <div class="outlook-cell"
-             ng-repeat="cell in _calCells track by cell.date"
-             ng-class="{'other-month':!cell.inMonth}">
-          <div class="d-flex align-items-center">
-            <div class="cal-cell-num"
-                 ng-class="{'is-today':cell.isToday,'other-month-num':!cell.inMonth}"
-                 ng-style="{'color':cell.inMonth?'var(--text)':'var(--muted)'}"
-                 ng-click="calGoDate(cell.date)">{{cell.day}}</div>
+      <div class="outlook-weeks">
+        <div class="outlook-week-row" ng-repeat="row in _calRows track by $index">
+          <div class="outlook-cells">
+            <div class="outlook-cell"
+                 ng-repeat="cell in row.cells track by cell.date"
+                 ng-class="{'other-month':!cell.inMonth,'has-bg-img':settings.dateBgs[cell.date]}"
+                 ng-style="settings.dateBgs[cell.date] ? {'background-image':'url('+settings.dateBgs[cell.date]+')','background-size':'cover','background-position':'center'} : {}">
+              <div class="d-flex align-items-center">
+                <div class="cal-cell-num"
+                     ng-class="{'is-today':cell.isToday,'other-month-num':!cell.inMonth}"
+                     ng-style="{'color':cell.inMonth?'var(--text)':'var(--muted)'}"
+                     ng-click="calGoDate(cell.date)">{{cell.day}}</div>
+              </div>
+              <button class="cal-cell-add" type="button" ng-click="calAddForDate(cell.date)" title="新增任務">
+                <i class="bi bi-plus-circle"></i>
+              </button>
+              <button class="cal-cell-bg" type="button" ng-click="openBgEditor('date', cell.date)" title="設定此日期背景">
+                <i class="bi bi-image" ng-if="!settings.dateBgs[cell.date]"></i>
+                <i class="bi bi-image-fill" ng-if="settings.dateBgs[cell.date]" style="color:var(--accent);opacity:1;"></i>
+              </button>
+              <!-- 跨日 span bar（嵌入格內，相鄰格視覺連成一條） -->
+              <div class="cal-span-inline"
+                   ng-repeat="sp in cell.spanEntries track by sp.key"
+                   ng-class="{'span-round-left':sp.roundLeft,'span-round-right':sp.roundRight}"
+                   ng-style="sp.task._isGroup ? {'background':getPrioColor(sp.task.priority)+'44','color':getPrioColor(sp.task.priority)} : {'background':getPrioColor(sp.task.priority),'color':'#fff'}"
+                   ng-click="calClickTask(sp.task);$event.stopPropagation()"
+                   title="{{sp.task._isGroup ? '[群組] ' : ''}}{{sp.task.text}}">
+                <span ng-if="sp.showLabel">
+                  <i class="bi bi-people-fill me-1" ng-if="sp.task._isGroup" style="font-size:.55rem;"></i>{{sp.task.text}}
+                </span>
+              </div>
+              <!-- 單日 chip -->
+              <div class="cal-chip"
+                   ng-repeat="task in cell.chipTasks | limitTo:2 track by task.id"
+                   ng-style="task._isGroup ? {'background':'transparent','border':'1.5px solid '+getPrioColor(task.priority),'color':getPrioColor(task.priority)} : {'background':getPrioColor(task.priority)}"
+                   ng-class="{'done-chip':task.completed}"
+                   ng-click="calClickTask(task);$event.stopPropagation()"
+                   title="{{task._isGroup ? '[群組] ' : ''}}{{task.text}}">
+                <i class="bi bi-people-fill me-1" ng-if="task._isGroup" style="font-size:.55rem;"></i>
+                <i class="bi bi-check-circle-fill me-1" ng-if="task.completed" style="font-size:.6rem;"></i>{{task.text}}
+              </div>
+              <div class="cal-more" ng-if="cell.hiddenCount > 0" ng-click="openCalMore(cell);$event.stopPropagation()">
+                +{{cell.hiddenCount}} 更多
+              </div>
+            </div>
           </div>
-          <button class="cal-cell-add" type="button" ng-click="calAddForDate(cell.date)" title="新增任務">
-            <i class="bi bi-plus-circle"></i>
-          </button>
-          <div class="cal-chip"
-               ng-repeat="task in cell.tasks | limitTo:3 track by task.id"
-               ng-style="{'background':getPrioColor(task.priority)}"
-               ng-class="{'done-chip':task.completed}"
-               ng-click="calEditTask(task);$event.stopPropagation()"
-               title="{{task.text}}">
-            <i class="bi bi-check-circle-fill me-1" ng-if="task.completed" style="font-size:.6rem;"></i>{{task.text}}
-          </div>
-          <div class="cal-more" ng-if="cell.tasks.length>3" ng-click="calGoDate(cell.date)">
-            +{{cell.tasks.length-3}} 更多
-          </div>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== RIGHT PANEL ===== -->
-  <div class="right-panel" ng-if="tab==='today'">
-    <div class="cal-header" ng-if="tab==='today'">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="fw-bold mb-0">{{calMonthLabel()}}</h6>
-        <div class="d-flex gap-1">
-          <button class="btn btn-sm p-1" ng-click="prevMonth()"><i class="bi bi-chevron-left"></i></button>
-          <button class="btn btn-sm p-1" ng-click="nextMonth()"><i class="bi bi-chevron-right"></i></button>
-        </div>
-      </div>
-      <div class="cal-grid mb-2">
-        <div class="text-center fw-medium" style="font-size:.72rem;color:var(--muted);"
-             ng-repeat="d in weekDays">{{d}}</div>
-      </div>
-      <div class="cal-grid">
-        <div ng-repeat="b in calBlanks() track by $index"></div>
-        <div ng-repeat="day in calDays()" class="d-flex justify-content-center">
-          <button class="cal-day-btn" ng-class="{sel:isSelDay(day)}" ng-click="selectDay(day)">
-            {{day}}
-            <span class="cal-dot" ng-if="dayHasTasks(day)"></span>
-          </button>
-        </div>
-      </div>
-    </div>
-    <div class="overdue-area">
-      <div class="d-flex align-items-center gap-2 mb-3 fw-bold" style="color:var(--accent);">
-        <i class="bi bi-exclamation-triangle-fill"></i>
-        <h6 class="mb-0">{{t.overdue}}</h6>
-      </div>
-      <p style="font-size:.82rem;color:var(--muted);" ng-if="!_overdue.length">目前沒有過期未完成項目。</p>
-      <div class="overdue-card" ng-repeat="task in _overdue track by task.id" ng-click="editTask(task)">
-        <div class="d-flex justify-content-between align-items-start mb-1">
-          <span class="fw-medium" style="font-size:.87rem;color:var(--accent);">{{task.text}}</span>
-          <button class="btn-icon ms-2 flex-shrink-0" type="button"
-                  ng-click="$event.stopPropagation();toggleTask(task.id)">
-            <i class="bi bi-check-circle" style="font-size:.95rem;"></i>
-          </button>
-        </div>
-        <small style="color:var(--muted);">截止: {{formatDT(task.deadline)}}</small>
       </div>
     </div>
   </div>
@@ -966,10 +990,10 @@
       <i class="bi bi-people" style="font-size:3.5rem;color:var(--muted);"></i>
       <p class="mt-3 mb-4" style="color:var(--muted);font-size:.95rem;">尚未加入任何群組</p>
       <div class="d-flex gap-2 justify-content-center flex-wrap">
-        <button class="btn btn-danger" ng-click="showCreateGroupModal=true;groupUi.error=''">
+        <button class="btn btn-danger" ng-click="openCreateGroupModal()">
           <i class="bi bi-plus-lg me-1"></i>建立群組
         </button>
-        <button class="btn btn-outline-secondary" ng-click="showJoinGroupModal=true;groupUi.error=''">
+        <button class="btn btn-outline-secondary" ng-click="openJoinGroupModal()">
           <i class="bi bi-door-open me-1"></i>輸入邀請碼加入
         </button>
       </div>
@@ -983,9 +1007,71 @@
         <h1 class="fw-bold mb-0" style="font-size:1.45rem;">
           <i class="bi bi-people-fill me-2" style="color:var(--accent);"></i>{{activeGroup.name}}
         </h1>
-        <button class="btn btn-sm btn-outline-secondary" ng-click="showGroupInfoPanel=!showGroupInfoPanel">
-          <i class="bi bi-info-circle me-1"></i>群組資訊
-        </button>
+        <div class="d-flex gap-2 align-items-center">
+          <!-- 鈴鐺通知開關 -->
+          <button class="btn btn-sm btn-outline-secondary" ng-click="toggleNotif()"
+                  title="{{settings.notifEnabled ? '關閉通知' : '開啟通知'}}">
+            <i class="bi" ng-class="settings.notifEnabled ? 'bi-bell-fill' : 'bi-bell-slash'"></i>
+          </button>
+          <!-- 布局按鈕 -->
+          <div class="position-relative" style="z-index:501;">
+            <div class="layout-overlay" ng-show="groupLayoutPanelOpen" ng-click="groupLayoutPanelOpen=false;ui.grpPrioFilterOpen=false"></div>
+            <button class="btn btn-sm btn-outline-secondary" style="position:relative;" ng-click="groupLayoutPanelOpen=!groupLayoutPanelOpen" title="布局">
+              <i class="bi bi-layout-three-columns"></i>
+            </button>
+            <div class="layout-panel" ng-show="groupLayoutPanelOpen" ng-click="ui.grpPrioFilterOpen=false;$event.stopPropagation()">
+              <!-- 排序 -->
+              <div class="layout-section">
+                <div class="layout-section-title">排序</div>
+                <div class="d-flex gap-2 align-items-center mb-2">
+                  <label class="layout-label">排序</label>
+                  <select class="form-select form-select-sm" ng-model="groupLayout.sortBy">
+                    <option>無</option><option>名稱</option><option>截止期限</option><option>優先級</option><option>標籤</option>
+                  </select>
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                  <label class="layout-label">順序</label>
+                  <select class="form-select form-select-sm" ng-model="groupLayout.sortOrder">
+                    <option>升序</option><option>降序</option>
+                  </select>
+                </div>
+              </div>
+              <!-- 過濾 -->
+              <div class="layout-section">
+                <div class="layout-section-title">過濾</div>
+                <div class="d-flex gap-2 align-items-center">
+                  <label class="layout-label">優先級</label>
+                  <div class="prio-filter-wrap">
+                    <button type="button" class="prio-filter-trigger"
+                            ng-click="ui.grpPrioFilterOpen=!ui.grpPrioFilterOpen;$event.stopPropagation()">
+                      <span>{{groupFilterPriorities.length ? '已選 '+groupFilterPriorities.length+' 項' : '全部'}}</span>
+                      <i class="bi bi-chevron-down" style="font-size:.72rem;"></i>
+                    </button>
+                    <div class="prio-filter-menu" ng-if="ui.grpPrioFilterOpen" ng-click="$event.stopPropagation()">
+                      <div class="priority-filter-item" style="border-bottom:1px solid var(--border);margin-bottom:4px;padding-bottom:4px;">
+                        <input type="checkbox" class="form-check-input" id="gpf-all"
+                               ng-checked="groupFilterPriorities.length===0"
+                               ng-click="clearGrpPriorityFilter()">
+                        <label class="form-check-label fw-medium" for="gpf-all">全選</label>
+                      </div>
+                      <div ng-repeat="p in settings.priorities" class="priority-filter-item">
+                        <input type="checkbox" class="form-check-input" id="gpf-{{p.level}}"
+                               ng-checked="groupFilterPriorities.indexOf(p.level)>=0"
+                               ng-click="toggleGrpPriorityFilter(p.level)">
+                        <label class="form-check-label" for="gpf-{{p.level}}" ng-style="{'color':p.color}">
+                          <i class="bi bi-flag-fill"></i> {{p.label}}
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-sm btn-outline-secondary" ng-click="showGroupInfoPanel=!showGroupInfoPanel">
+            <i class="bi bi-info-circle me-1"></i>群組資訊
+          </button>
+        </div>
       </div>
 
       <!-- 群組資訊面板（可折疊） -->
@@ -1012,10 +1098,10 @@
           <button class="btn btn-sm btn-outline-danger" ng-click="leaveGroup()">
             <i class="bi bi-door-closed me-1"></i>離開群組
           </button>
-          <button class="btn btn-sm btn-outline-secondary" ng-click="showCreateGroupModal=true;groupUi.error=''">
+          <button class="btn btn-sm btn-outline-secondary" ng-click="openCreateGroupModal()">
             建立新群組
           </button>
-          <button class="btn btn-sm btn-outline-secondary" ng-click="showJoinGroupModal=true;groupUi.error=''">
+          <button class="btn btn-sm btn-outline-secondary" ng-click="openJoinGroupModal()">
             加入其他群組
           </button>
         </div>
@@ -1026,19 +1112,54 @@
         <form ng-submit="saveGroupTask($event)" novalidate>
           <input type="text" class="title-input mb-2" placeholder="任務名稱..." ng-model="groupForm.text" autofocus>
           <textarea class="c-input mb-3" rows="2" placeholder="任務描述..." ng-model="groupForm.description"></textarea>
-          <!-- 優先級 -->
+
+          <!-- 子步驟列表 -->
+          <div class="mb-2" ng-if="groupForm.steps.length">
+            <div class="step-row" ng-repeat="s in groupForm.steps track by s.id">
+              <button type="button" class="btn-icon flex-shrink-0" ng-click="toggleGrpFormStep(s.id);$event.stopPropagation()">
+                <i class="bi" ng-class="s.completed?'bi-check-circle-fill':'bi-circle'"
+                   style="color:var(--accent);font-size:.9rem;"></i>
+              </button>
+              <input type="text" class="c-input flex-grow-1"
+                     ng-if="ui.grpStepEditId===s.id"
+                     ng-model="s.text"
+                     ng-blur="ui.grpStepEditId=null"
+                     style="font-size:.85rem;padding:.2rem .5rem;" autofocus>
+              <span class="flex-grow-1" style="font-size:.87rem;cursor:text;"
+                    ng-if="ui.grpStepEditId!==s.id"
+                    ng-class="{'text-decoration-line-through opacity-50':s.completed}"
+                    ng-click="ui.grpStepEditId=s.id;$event.stopPropagation()">{{s.text}}</span>
+              <button type="button" class="btn-icon flex-shrink-0" ng-click="removeGrpFormStep(s.id);$event.stopPropagation()">
+                <i class="bi bi-x"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- 子步驟新增 + 優先級 -->
           <div class="row g-3 mb-3">
+            <div class="col-12 col-md-6">
+              <label class="d-block mb-1" style="font-size:.8rem;color:var(--muted);">
+                <i class="bi bi-list-task me-1"></i>子步驟
+                <small style="font-size:.75em;opacity:.7;"> 點文字可編輯</small>
+              </label>
+              <div class="d-flex gap-2">
+                <input type="text" class="c-input flex-grow-1" placeholder="新增子步驟..."
+                       ng-model="ui.grpNewStepText"
+                       ng-keydown="grpStepKeydown($event)" style="font-size:.85rem;">
+                <button type="button" class="btn btn-sm btn-outline-secondary" ng-click="addGrpFormStep()">新增</button>
+              </div>
+            </div>
             <div class="col-12 col-md-6">
               <label class="d-block mb-1" style="font-size:.8rem;color:var(--muted);">
                 <i class="bi bi-flag me-1"></i>優先級
               </label>
+              <div class="p-dropdown-overlay" ng-if="ui.isGrpPrioOpen" ng-click="ui.isGrpPrioOpen=false"></div>
               <div class="p-dropdown">
                 <button type="button" class="p-dropdown-trigger" ng-click="ui.isGrpPrioOpen=!ui.isGrpPrioOpen">
                   <i class="bi bi-flag-fill" style="color:{{getPrioColor(groupForm.priority)}};flex-shrink:0;"></i>
                   <span class="flex-grow-1">{{getPrioLabel(groupForm.priority)}}</span>
                   <i class="bi bi-chevron-down" style="font-size:.72rem;opacity:.6;flex-shrink:0;"></i>
                 </button>
-                <div class="p-dropdown-overlay" ng-if="ui.isGrpPrioOpen" ng-click="ui.isGrpPrioOpen=false"></div>
                 <div class="p-dropdown-menu" ng-if="ui.isGrpPrioOpen">
                   <div class="p-dropdown-item" ng-repeat="p in settings.priorities track by p.level"
                        ng-click="groupForm.priority=''+p.level; ui.isGrpPrioOpen=false">
@@ -1050,6 +1171,16 @@
                 </div>
               </div>
             </div>
+          </div>
+
+          <!-- 啟用時間 + 截止期限 -->
+          <div class="row g-3 mb-3">
+            <div class="col-12 col-md-6">
+              <label class="d-block mb-1" style="font-size:.8rem;color:var(--muted);">
+                <i class="bi bi-play-circle me-1"></i>啟用時間
+              </label>
+              <input type="datetime-local" class="c-input" ng-model="groupForm.startTime">
+            </div>
             <div class="col-12 col-md-6">
               <label class="d-block mb-1" style="font-size:.8rem;color:var(--muted);">
                 <i class="bi bi-clock me-1"></i>截止期限
@@ -1057,13 +1188,35 @@
               <input type="datetime-local" class="c-input" ng-model="groupForm.deadline">
             </div>
           </div>
-          <!-- 啟用時間 -->
-          <div class="mb-3">
-            <label class="d-block mb-1" style="font-size:.8rem;color:var(--muted);">
-              <i class="bi bi-play-circle me-1"></i>啟用時間
-            </label>
-            <input type="datetime-local" class="c-input" ng-model="groupForm.startTime">
+
+          <!-- 提醒 + 地點 -->
+          <div class="row g-3 mb-3">
+            <div class="col-12 col-md-6">
+              <label class="d-block mb-1" style="font-size:.8rem;color:var(--muted);">
+                <i class="bi bi-bell me-1"></i>提醒
+              </label>
+              <div class="d-flex gap-2">
+                <select class="c-input flex-grow-1" ng-model="groupForm.reminderType">
+                  <option value="0">時間到時</option>
+                  <option value="5">5 分鐘前</option>
+                  <option value="15">15 分鐘前</option>
+                  <option value="30">30 分鐘前</option>
+                  <option value="60">1 小時前</option>
+                  <option value="custom">自訂</option>
+                  <option value="none">不提醒</option>
+                </select>
+                <input type="datetime-local" class="c-input" ng-model="groupForm.customReminderTime"
+                       ng-if="groupForm.reminderType==='custom'" style="width:52%;">
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="d-block mb-1" style="font-size:.8rem;color:var(--muted);">
+                <i class="bi bi-geo-alt me-1"></i>地點
+              </label>
+              <input type="text" class="c-input" ng-model="groupForm.location">
+            </div>
           </div>
+
           <!-- 標籤 -->
           <div class="mb-3">
             <label class="d-block mb-2" style="font-size:.8rem;color:var(--muted);">
@@ -1078,6 +1231,7 @@
               </button>
             </div>
           </div>
+
           <div class="divider"></div>
           <div class="d-flex justify-content-end gap-2 mt-2">
             <button type="button" class="btn btn-light" ng-click="cancelGroupForm()">取消</button>
@@ -1135,12 +1289,168 @@
     </div><!-- /activeGroupId -->
   </div><!-- /group panel -->
 
+  <!-- ===== RIGHT PANEL ===== -->
+  <div class="right-panel" ng-if="tab==='today' || tab==='group'">
+    <!-- 迷你日曆 -->
+    <div class="cal-header">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0">{{calMonthLabel()}}</h6>
+        <div class="d-flex gap-1">
+          <button class="btn btn-sm p-1" ng-click="prevMonth()"><i class="bi bi-chevron-left"></i></button>
+          <button class="btn btn-sm p-1" ng-click="nextMonth()"><i class="bi bi-chevron-right"></i></button>
+        </div>
+      </div>
+      <div class="cal-grid mb-2">
+        <div class="text-center fw-medium" style="font-size:.72rem;color:var(--muted);"
+             ng-repeat="d in weekDays">{{d}}</div>
+      </div>
+      <div class="cal-grid">
+        <div ng-repeat="b in calBlanks() track by $index"></div>
+        <div ng-repeat="day in calDays()" class="d-flex justify-content-center">
+          <button class="cal-day-btn" ng-class="{sel:isSelDay(day)}" ng-click="selectDay(day)">
+            {{day}}
+            <span class="cal-dot" ng-if="dayHasTasks(day)"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- 今日任務：過期未完成 -->
+    <div class="overdue-area" ng-if="tab==='today'">
+      <div class="d-flex align-items-center gap-2 mb-3 fw-bold" style="color:var(--accent);">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <h6 class="mb-0">{{t.overdue}}</h6>
+      </div>
+      <p style="font-size:.82rem;color:var(--muted);" ng-if="!_overdue.length">目前沒有過期未完成項目。</p>
+      <div class="overdue-card" ng-repeat="task in _overdue track by task.id" ng-click="editTask(task)">
+        <div class="d-flex justify-content-between align-items-start mb-1">
+          <span class="fw-medium" style="font-size:.87rem;color:var(--accent);">{{task.text}}</span>
+          <button class="btn-icon ms-2 flex-shrink-0" type="button"
+                  ng-click="$event.stopPropagation();toggleTask(task.id)">
+            <i class="bi bi-check-circle" style="font-size:.95rem;"></i>
+          </button>
+        </div>
+        <small style="color:var(--muted);">截止: {{formatDT(task.deadline)}}</small>
+      </div>
+    </div>
+    <!-- 群組任務：逾期未完成清單（與今日任務邏輯相同：deadline 已過且未完成） -->
+    <div class="overdue-area" ng-if="tab==='group'">
+      <div class="d-flex align-items-center gap-2 mb-3 fw-bold" style="color:var(--accent);">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <h6 class="mb-0">群組未完成事項</h6>
+      </div>
+      <p style="font-size:.82rem;color:var(--muted);" ng-if="!activeGroupId">尚未加入任何群組。</p>
+      <p style="font-size:.82rem;color:var(--muted);" ng-if="activeGroupId && !_groupOverdue.length">目前沒有逾期未完成項目。</p>
+      <div class="overdue-card"
+           ng-repeat="task in _groupOverdue track by task.id"
+           ng-click="editGroupTask(task)">
+        <div class="d-flex justify-content-between align-items-start mb-1">
+          <span class="fw-medium" style="font-size:.87rem;color:var(--accent);">
+            <i class="bi bi-flag-fill me-1" style="font-size:.65rem;color:{{getPrioColor(task.priority)}}"></i>
+            {{task.text}}
+          </span>
+          <button class="btn-icon ms-2 flex-shrink-0" type="button"
+                  ng-click="$event.stopPropagation();toggleGroupTask(task.id, task.completed)">
+            <i class="bi bi-check-circle" style="font-size:.95rem;"></i>
+          </button>
+        </div>
+        <small style="color:var(--muted);">截止: {{formatDT(task.deadline)}}</small>
+        <small style="color:var(--muted);font-size:.72rem;" ng-if="task.updatedBy">
+          <i class="bi bi-pencil-fill"></i> {{getMemberEmail(task.updatedBy)}}
+        </small>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 背景圖 FAB ===== -->
+  <button class="bg-fab today-fab" ng-if="tab==='today'" ng-click="openBgEditor('today')" title="設定今日任務背景圖">
+    <i class="bi bi-image-fill" ng-if="settings.todayBg"></i>
+    <i class="bi bi-image" ng-if="!settings.todayBg"></i>
+  </button>
+  <button class="bg-fab cal-fab" ng-if="tab==='calendar'" ng-click="openBgEditor('cal')" title="設定行事曆背景圖">
+    <i class="bi bi-image-fill" ng-if="settings.calBg"></i>
+    <i class="bi bi-image" ng-if="!settings.calBg"></i>
+  </button>
+
+  <!-- ===== 背景圖編輯 Modal ===== -->
+  <div class="map-overlay" ng-if="ui.bgEditor.open" ng-click="ui.bgEditor.open=false">
+    <div class="map-box" ng-click="$event.stopPropagation()" style="max-width:420px;">
+      <div class="d-flex justify-content-between align-items-center p-3" style="border-bottom:1px solid var(--border);">
+        <h6 class="mb-0 fw-bold">
+          <i class="bi bi-image me-2"></i>
+          <span ng-if="ui.bgEditor.type==='today'">今日任務背景圖</span>
+          <span ng-if="ui.bgEditor.type==='cal'">行事曆背景圖</span>
+          <span ng-if="ui.bgEditor.type==='date'">{{ui.bgEditor.date}} 日期格背景圖</span>
+        </h6>
+        <button class="btn-icon" ng-click="ui.bgEditor.open=false"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="p-3">
+        <!-- 本地檔案選取 -->
+        <label class="d-block mb-2" style="font-size:.85rem;font-weight:500;">選取本地圖片</label>
+        <label class="btn btn-outline-secondary w-100 mb-3" style="cursor:pointer;">
+          <i class="bi bi-folder2-open me-2"></i>從裝置選取圖片
+          <input type="file" accept="image/*" style="display:none;"
+                 onchange="angular.element(this).scope().handleBgFile(this.files); this.value='';">
+        </label>
+        <!-- 預覽 -->
+        <div ng-if="ui.bgEditor.url" class="mb-3"
+             style="height:130px;border-radius:8px;border:1px solid var(--border);background-size:cover;background-position:center;"
+             ng-style="{'background-image':'url('+ui.bgEditor.url+')'}">
+        </div>
+        <div ng-if="!ui.bgEditor.url" class="mb-3 d-flex align-items-center justify-content-center"
+             style="height:80px;border-radius:8px;border:2px dashed var(--border);color:var(--muted);font-size:.85rem;">
+          <i class="bi bi-image me-2"></i>尚未選取圖片
+        </div>
+        <div class="d-flex gap-2 justify-content-between">
+          <button class="btn btn-sm btn-outline-danger" ng-click="clearBg()" ng-disabled="!ui.bgEditor.url">
+            <i class="bi bi-trash me-1"></i>移除背景
+          </button>
+          <div class="d-flex gap-2">
+            <button class="btn btn-light" ng-click="ui.bgEditor.open=false">取消</button>
+            <button class="btn btn-danger" ng-click="applyBg()" ng-disabled="!ui.bgEditor.url">套用</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 頭貼編輯 Modal ===== -->
+  <div class="map-overlay" ng-if="ui.avatarEditor.open" ng-click="ui.avatarEditor.open=false">
+    <div class="map-box" ng-click="$event.stopPropagation()" style="max-width:360px;">
+      <div class="d-flex justify-content-between align-items-center p-3" style="border-bottom:1px solid var(--border);">
+        <h6 class="mb-0 fw-bold"><i class="bi bi-person-circle me-2"></i>更換頭貼</h6>
+        <button class="btn-icon" ng-click="ui.avatarEditor.open=false"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="p-3 text-center">
+        <!-- 預覽 -->
+        <div class="avatar-preview mb-3">
+          <img ng-if="ui.avatarEditor.url" ng-src="{{ui.avatarEditor.url}}" alt="preview">
+          <span ng-if="!ui.avatarEditor.url">{{currentUser.charAt(0).toUpperCase()}}</span>
+        </div>
+        <!-- 本地檔案選取（手機會開啟相簿） -->
+        <label class="btn btn-outline-secondary w-100 mb-3" style="cursor:pointer;">
+          <i class="bi bi-camera me-2"></i>從裝置選取照片
+          <input type="file" accept="image/*" style="display:none;"
+                 onchange="angular.element(this).scope().handleAvatarFile(this.files); this.value='';">
+        </label>
+        <div class="d-flex gap-2 justify-content-between">
+          <button class="btn btn-sm btn-outline-danger" ng-click="settings.avatarUrl='';ui.avatarEditor.open=false">
+            <i class="bi bi-trash me-1"></i>移除頭貼
+          </button>
+          <div class="d-flex gap-2">
+            <button class="btn btn-light" ng-click="ui.avatarEditor.open=false">取消</button>
+            <button class="btn btn-danger" ng-click="applyAvatar()" ng-disabled="!ui.avatarEditor.url">套用</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== 建立群組 Modal ===== -->
-  <div class="map-overlay" ng-if="showCreateGroupModal" ng-click="showCreateGroupModal=false">
+  <div class="map-overlay" ng-if="showCreateGroupModal" ng-click="closeCreateGroupModal()">
     <div class="map-box" ng-click="$event.stopPropagation()" style="max-width:400px;">
       <div class="d-flex justify-content-between align-items-center p-3" style="border-bottom:1px solid var(--border);">
         <h6 class="mb-0 fw-bold"><i class="bi bi-people me-2"></i>建立群組</h6>
-        <button class="btn-icon" ng-click="showCreateGroupModal=false"><i class="bi bi-x-lg"></i></button>
+        <button class="btn-icon" ng-click="closeCreateGroupModal()"><i class="bi bi-x-lg"></i></button>
       </div>
       <div class="p-3">
         <label class="d-block mb-1" style="font-size:.85rem;font-weight:500;">群組名稱</label>
@@ -1148,7 +1458,7 @@
                ng-keydown="$event.keyCode===13 && createGroup()">
         <div class="alert alert-danger py-2 mb-3" ng-if="groupUi.error" style="font-size:.85rem;">{{groupUi.error}}</div>
         <div class="d-flex gap-2 justify-content-end">
-          <button class="btn btn-light" ng-click="showCreateGroupModal=false">取消</button>
+          <button class="btn btn-light" ng-click="closeCreateGroupModal()">取消</button>
           <button class="btn btn-danger" ng-click="createGroup()" ng-disabled="groupUi.loading || !groupUi.newGroupName.trim()">
             <span ng-if="groupUi.loading"><i class="bi bi-hourglass-split me-1"></i>建立中...</span>
             <span ng-if="!groupUi.loading">建立</span>
@@ -1159,11 +1469,11 @@
   </div>
 
   <!-- ===== 加入群組 Modal ===== -->
-  <div class="map-overlay" ng-if="showJoinGroupModal" ng-click="showJoinGroupModal=false">
+  <div class="map-overlay" ng-if="showJoinGroupModal" ng-click="closeJoinGroupModal()">
     <div class="map-box" ng-click="$event.stopPropagation()" style="max-width:400px;">
       <div class="d-flex justify-content-between align-items-center p-3" style="border-bottom:1px solid var(--border);">
         <h6 class="mb-0 fw-bold"><i class="bi bi-door-open me-2"></i>加入群組</h6>
-        <button class="btn-icon" ng-click="showJoinGroupModal=false"><i class="bi bi-x-lg"></i></button>
+        <button class="btn-icon" ng-click="closeJoinGroupModal()"><i class="bi bi-x-lg"></i></button>
       </div>
       <div class="p-3">
         <label class="d-block mb-1" style="font-size:.85rem;font-weight:500;">邀請碼</label>
@@ -1172,11 +1482,41 @@
                ng-keydown="$event.keyCode===13 && joinGroup()">
         <div class="alert alert-danger py-2 mb-3" ng-if="groupUi.error" style="font-size:.85rem;">{{groupUi.error}}</div>
         <div class="d-flex gap-2 justify-content-end">
-          <button class="btn btn-light" ng-click="showJoinGroupModal=false">取消</button>
+          <button class="btn btn-light" ng-click="closeJoinGroupModal()">取消</button>
           <button class="btn btn-danger" ng-click="joinGroup()" ng-disabled="groupUi.loading || !groupUi.joinCode.trim()">
             <span ng-if="groupUi.loading"><i class="bi bi-hourglass-split me-1"></i>加入中...</span>
             <span ng-if="!groupUi.loading">加入</span>
           </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 行事曆 +N更多 Modal ===== -->
+  <div class="map-overlay" ng-if="calMore.open" ng-click="closeCalMore()">
+    <div class="map-box" ng-click="$event.stopPropagation()" style="max-width:420px;max-height:70vh;display:flex;flex-direction:column;">
+      <div class="d-flex justify-content-between align-items-center p-3" style="border-bottom:1px solid var(--border);flex-shrink:0;">
+        <h6 class="mb-0 fw-bold"><i class="bi bi-calendar3 me-2"></i>{{calMore.dateLabel}} 的所有任務</h6>
+        <button class="btn-icon" ng-click="closeCalMore()"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="p-2" style="overflow-y:auto;flex:1;">
+        <div ng-if="calMore.tasks.length===0" class="text-center py-4" style="color:var(--muted);font-size:.9rem;">
+          此日無任務
+        </div>
+        <div ng-repeat="task in calMore.tasks track by task.id"
+             class="d-flex align-items-center gap-2 px-2 py-2 rounded mb-1"
+             style="cursor:pointer;transition:background .12s;"
+             ng-style="{'background': task._isGroup ? 'transparent' : getPrioColor(task.priority)+'22', 'border': '1px solid '+(task._isGroup ? getPrioColor(task.priority) : getPrioColor(task.priority)+'55')}"
+             ng-click="calMoreClickTask(task)">
+          <span style="width:8px;height:8px;border-radius:50%;flex-shrink:0;"
+                ng-style="{'background':getPrioColor(task.priority)}"></span>
+          <i class="bi bi-people-fill" ng-if="task._isGroup" style="font-size:.75rem;color:var(--muted);"></i>
+          <i class="bi bi-check-circle-fill" ng-if="task.completed" style="font-size:.75rem;color:var(--muted);"></i>
+          <span style="flex:1;font-size:.88rem;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;"
+                ng-style="{'text-decoration':task.completed?'line-through':'none','color':task.completed?'var(--muted)':'var(--text)'}">
+            {{task._isGroup ? '[群組] ' : ''}}{{task.text}}
+          </span>
+          <span ng-if="task.deadline" style="font-size:.75rem;color:var(--muted);flex-shrink:0;">{{formatDT(task.deadline)}}</span>
         </div>
       </div>
     </div>
@@ -1402,6 +1742,7 @@ angular.module('todoApp', [])
   $scope.groupMemberList    = [];
   $scope.groupTasks         = [];
   $scope._groupCur          = [];
+  $scope._groupOverdue      = [];
   $scope.groupPendingCount  = 0;
   $scope.isAddingGroup      = false;
   $scope.groupEditId        = null;
@@ -1421,8 +1762,11 @@ angular.module('todoApp', [])
       {level:1,color:'#dc2626',label:'level 1'},{level:2,color:'#d97706',label:'level 2'},
       {level:3,color:'#16a34a',label:'level 3'},{level:4,color:'#2563eb',label:'level 4'},
       {level:5,color:'#7c3aed',label:'level 5'}
-    ]
+    ],
+    todayBg: '', calBg: '', dateBgs: {}, avatarUrl: '', notifEnabled: true
   }, savedS);
+  if (!$scope.settings.dateBgs) $scope.settings.dateBgs = {};
+  if ($scope.settings.notifEnabled === undefined) $scope.settings.notifEnabled = true;
   /* 舊版 P1/P2 標籤遷移 */
   if ($scope.settings.priorities && $scope.settings.priorities[0] && /^P\d+$/.test($scope.settings.priorities[0].label)) {
     $scope.settings.priorities = $scope.settings.priorities.map(function(p){
@@ -1460,7 +1804,7 @@ angular.module('todoApp', [])
   function saveToFirestore() {
     if (!_uid) return;
     var data = JSON.parse(JSON.stringify({tasks: $scope.tasks, settings: $scope.settings}));
-    db.collection('users').doc(_uid).set(data).catch(function(e){
+    db.collection('users').doc(_uid).set(data, {merge: true}).catch(function(e){
       console.error('Firestore 儲存失敗:', e);
     });
   }
@@ -1494,12 +1838,97 @@ angular.module('todoApp', [])
     stepEditId: null,           /* 正在編輯的步驟 id */
     prioEditLevel: null,        /* 正在編輯的優先級 level */
     prioFilterOpen: false,      /* 布局面板優先級過濾下拉 */
-    isGrpPrioOpen: false        /* 群組任務表單優先級下拉 */
+    isGrpPrioOpen: false,       /* 群組任務表單優先級下拉 */
+    grpPrioFilterOpen: false,   /* 群組布局面板優先級過濾下拉 */
+    grpStepEditId: null,        /* 群組任務表單正在編輯的子步驟 id */
+    grpNewStepText: '',         /* 群組任務表單新子步驟輸入 */
+    bgEditor: { open:false, type:'', date:'', url:'' },  /* 背景圖編輯器 */
+    avatarEditor: { open:false, url:'' }                  /* 頭貼編輯器 */
+  };
+
+  /* ── 群組 modal 開關（使用方法避免 ng-if 子 scope 問題） ── */
+  $scope.openCreateGroupModal  = function() { $scope.showCreateGroupModal = true; $scope.groupUi.error = ''; };
+  $scope.openJoinGroupModal    = function() { $scope.showJoinGroupModal   = true; $scope.groupUi.error = ''; };
+  $scope.closeCreateGroupModal = function() { $scope.showCreateGroupModal = false; };
+  $scope.closeJoinGroupModal   = function() { $scope.showJoinGroupModal   = false; };
+
+  /* ── 背景圖 ── */
+  $scope.openBgEditor = function(type, date) {
+    $scope.ui.bgEditor.type = type;
+    $scope.ui.bgEditor.date = date || '';
+    $scope.ui.bgEditor.url  = type === 'date' ? ($scope.settings.dateBgs[date] || '') :
+                               type === 'today' ? $scope.settings.todayBg :
+                               $scope.settings.calBg;
+    $scope.ui.bgEditor.open = true;
+  };
+  $scope.applyBg = function() {
+    var b = $scope.ui.bgEditor;
+    if (b.type === 'today') $scope.settings.todayBg = b.url.trim();
+    else if (b.type === 'cal')  $scope.settings.calBg  = b.url.trim();
+    else if (b.type === 'date') {
+      if (b.url.trim()) $scope.settings.dateBgs[b.date] = b.url.trim();
+      else delete $scope.settings.dateBgs[b.date];
+    }
+    $scope.ui.bgEditor.open = false;
+  };
+  $scope.clearBg = function() {
+    var b = $scope.ui.bgEditor;
+    if (b.type === 'today') $scope.settings.todayBg = '';
+    else if (b.type === 'cal')  $scope.settings.calBg  = '';
+    else if (b.type === 'date') delete $scope.settings.dateBgs[b.date];
+    $scope.ui.bgEditor.open = false;
+  };
+
+  /* ── 圖片壓縮工具 ── */
+  function resizeImageToBase64(file, maxW, maxH, quality, cb) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var img = new Image();
+      img.onload = function() {
+        var w = img.width, h = img.height;
+        if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+        if (h > maxH) { w = Math.round(w * maxH / h); h = maxH; }
+        var canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        cb(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  /* ── 背景圖本地上傳 ── */
+  $scope.handleBgFile = function(files) {
+    if (!files || !files[0]) return;
+    resizeImageToBase64(files[0], 1280, 720, 0.65, function(base64) {
+      $scope.$apply(function() { $scope.ui.bgEditor.url = base64; });
+    });
+  };
+
+  /* ── 頭貼 ── */
+  $scope.openAvatarEditor = function() {
+    if ($scope.currentUser === '__guest__') return;
+    $scope.ui.avatarEditor.url  = $scope.settings.avatarUrl || '';
+    $scope.ui.avatarEditor.open = true;
+  };
+  $scope.handleAvatarFile = function(files) {
+    if (!files || !files[0]) return;
+    resizeImageToBase64(files[0], 200, 200, 0.85, function(base64) {
+      $scope.$apply(function() { $scope.ui.avatarEditor.url = base64; });
+    });
+  };
+  $scope.applyAvatar = function() {
+    $scope.settings.avatarUrl = $scope.ui.avatarEditor.url;
+    $scope.ui.avatarEditor.open = false;
   };
 
   /* 布局面板狀態 — 用物件包裝，讓 ng-if 子 scope 修改時能穿透到 controller scope */
   $scope.viewMode = 'list';
   $scope.layoutPanelOpen = false;
+  $scope.groupLayoutPanelOpen = false;
+  $scope.groupLayout = { sortBy: '無', sortOrder: '升序' };
+  $scope.groupFilterPriorities = [];
   $scope.groupBy = '無';
   $scope.layout = { sortBy: '無', sortOrder: '升序', filterDate: '全部' };
   $scope.filterPriorities = [];
@@ -1512,7 +1941,25 @@ angular.module('todoApp', [])
   $scope.pendingCount = 0;
 
   function getTasksForDate(ds) {
-    return $scope.tasks.filter(function(t){ return t.date===ds; });
+    var today = todayStr();
+    var endOfYear = ds.substring(0,4) + '-12-31';
+    /* 個人任務：從 startTime（或建立日期）到 deadline（或年底），已完成排除 */
+    var personal = $scope.tasks.filter(function(t) {
+      if (t.completed) return false;
+      var from = t.startTime ? t.startTime.substring(0,4) === ds.substring(0,4)
+        ? t.startTime.substring(0,10) : t.startTime.substring(0,10)
+        : (t.date || today);
+      var to = t.deadline ? t.deadline.substring(0,10) : endOfYear;
+      return ds >= from && ds <= to;
+    }).map(function(t) { return angular.extend({}, t, {_isGroup: false}); });
+    /* 群組任務：同規則，有群組才顯示 */
+    var group = ($scope.groupTasks || []).filter(function(t) {
+      if (t.completed) return false;
+      var from = t.startTime ? t.startTime.substring(0,10) : (t.date || today);
+      var to = t.deadline ? t.deadline.substring(0,10) : endOfYear;
+      return ds >= from && ds <= to;
+    }).map(function(t) { return angular.extend({}, t, {_isGroup: true}); });
+    return personal.concat(group);
   }
 
   /* 取得本週一（週一為一週起點） */
@@ -1624,27 +2071,7 @@ angular.module('todoApp', [])
     }).length;
 
     /* Outlook calendar cells */
-    var y=$scope.calMonth.getFullYear(), m=$scope.calMonth.getMonth();
-    var firstDay=new Date(y,m,1).getDay();
-    var daysInMonth=new Date(y,m+1,0).getDate();
-    var prevDays=new Date(y,m,0).getDate();
-    var cells=[];
-    for(var i=0;i<firstDay;i++){
-      var d=prevDays-firstDay+1+i;
-      var ds2=fmtDate(new Date(y,m-1,d));
-      cells.push({day:d,inMonth:false,isToday:false,date:ds2,tasks:getTasksForDate(ds2)});
-    }
-    for(var d2=1;d2<=daysInMonth;d2++){
-      var ds3=fmtDate(new Date(y,m,d2));
-      cells.push({day:d2,inMonth:true,isToday:ds3===today,date:ds3,tasks:getTasksForDate(ds3)});
-    }
-    var total=Math.ceil((firstDay+daysInMonth)/7)*7;
-    var rem=total-firstDay-daysInMonth;
-    for(var d3=1;d3<=rem;d3++){
-      var ds4=fmtDate(new Date(y,m+1,d3));
-      cells.push({day:d3,inMonth:false,isToday:false,date:ds4,tasks:getTasksForDate(ds4)});
-    }
-    $scope._calCells = cells;
+    rebuildCalCells();
 
     /* 週視圖資料 */
     var weekBase = new Date();
@@ -1695,6 +2122,9 @@ angular.module('todoApp', [])
   $scope.$watch('layout.sortOrder', rebuildLists);
   $scope.$watch('layout.filterDate', rebuildLists);
   $scope.$watchCollection('filterPriorities', rebuildLists);
+  $scope.$watch('groupLayout.sortBy', rebuildGroupLists);
+  $scope.$watch('groupLayout.sortOrder', rebuildGroupLists);
+  $scope.$watchCollection('groupFilterPriorities', rebuildGroupLists);
 
   $scope.selectWeekDay = function(dateStr) { $scope.weekSelDate = dateStr; };
 
@@ -1733,16 +2163,44 @@ angular.module('todoApp', [])
   var notifiedIds={};
   $interval(function(){
     var now=new Date();
+    var notifOn = $scope.settings.notifEnabled;
+    /* 個人任務：到期 + 提醒 */
     $scope.tasks.forEach(function(task){
       if(task.completed)return;
       if(task.deadline&&!task.isOverdue&&now>=new Date(task.deadline))task.isOverdue=true;
-      if(task.calculatedReminder&&!notifiedIds[task.id]&&now>=new Date(task.calculatedReminder)){
+      if(notifOn&&task.calculatedReminder&&!notifiedIds[task.id]&&now>=new Date(task.calculatedReminder)){
         notifiedIds[task.id]=true;
         $scope.notifications.push({id:Date.now()+Math.random(),taskId:task.id,message:task.text,
           deadlineDisplay:task.deadline?$scope.formatDT(task.deadline):'無期限'});
       }
     });
+    /* 群組任務：到期 + 提醒 */
+    ($scope.groupTasks||[]).forEach(function(task){
+      if(task.completed)return;
+      var overdueKey='g_'+task.id;
+      if(task.deadline&&!task.isOverdue&&now>=new Date(task.deadline)){
+        task.isOverdue=true;
+        rebuildGroupLists();
+      }
+      if(notifOn&&task.calculatedReminder&&!notifiedIds[overdueKey]&&now>=new Date(task.calculatedReminder)){
+        notifiedIds[overdueKey]=true;
+        $scope.notifications.push({id:Date.now()+Math.random(),taskId:task.id,message:'[群組] '+task.text,
+          deadlineDisplay:task.deadline?$scope.formatDT(task.deadline):'無期限'});
+      }
+    });
+    /* 更新群組逾期清單 */
+    var grpOverdue=($scope.groupTasks||[]).filter(function(t){
+      return !t.completed&&t.deadline&&now>=new Date(t.deadline);
+    }).sort(function(a,b){return new Date(a.deadline)-new Date(b.deadline);});
+    if(JSON.stringify(grpOverdue.map(function(t){return t.id;}))!==
+       JSON.stringify(($scope._groupOverdue||[]).map(function(t){return t.id;}))){
+      $scope._groupOverdue=grpOverdue;
+    }
   }, 5000);
+
+  $scope.toggleNotif = function() {
+    $scope.settings.notifEnabled = !$scope.settings.notifEnabled;
+  };
 
   $scope.dismissNotif = function(id){ $scope.notifications=$scope.notifications.filter(function(n){return n.id!==id;}); };
 
@@ -1930,6 +2388,17 @@ angular.module('todoApp', [])
     if (idx >= 0) $scope.filterPriorities.splice(idx, 1);
     else $scope.filterPriorities.push(level);
   };
+  $scope.clearPriorityFilter = function() {
+    $scope.filterPriorities.splice(0, $scope.filterPriorities.length);
+  };
+  $scope.toggleGrpPriorityFilter = function(level) {
+    var idx = $scope.groupFilterPriorities.indexOf(level);
+    if (idx >= 0) $scope.groupFilterPriorities.splice(idx, 1);
+    else $scope.groupFilterPriorities.push(level);
+  };
+  $scope.clearGrpPriorityFilter = function() {
+    $scope.groupFilterPriorities.splice(0, $scope.groupFilterPriorities.length);
+  };
   $scope.selectDay=function(d){ $scope.selectedDate=new Date($scope.calMonth.getFullYear(),$scope.calMonth.getMonth(),d); };
   $scope.isSelDay=function(d){ return fmtDate(new Date($scope.calMonth.getFullYear(),$scope.calMonth.getMonth(),d))===fmtDate($scope.selectedDate); };
   $scope.dayHasTasks=function(d){
@@ -1957,7 +2426,8 @@ angular.module('todoApp', [])
   /* Calendar tab actions */
   $scope.calGoDate=function(dateStr){ $scope.selectedDate=new Date(dateStr+'T00:00:00'); $scope.tab='today'; };
   $scope.calEditTask=function(task){
-    $scope.selectedDate=new Date(task.date+'T00:00:00');
+    var dateStr = task.date || (task.startTime ? task.startTime.substring(0,10) : null);
+    if (dateStr) $scope.selectedDate = new Date(dateStr + 'T00:00:00');
     $scope.tab='today';
     $timeout(function(){ $scope.editTask(task); }, 0);
   };
@@ -2042,14 +2512,164 @@ angular.module('todoApp', [])
   }
 
   function rebuildGroupLists() {
+    var gl = $scope.groupLayout || {};
+    var gfp = $scope.groupFilterPriorities || [];
     var list = $scope.groupTasks.filter(function(t) { return !t.isOverdue; });
+    /* 優先級過濾 */
+    if (gfp.length) list = list.filter(function(t) { return gfp.indexOf(Number(t.priority)||1) >= 0; });
+    /* 排序 */
+    var asc = gl.sortOrder !== '降序';
     list.sort(function(a, b) {
       if (a.completed !== b.completed) return a.completed ? 1 : -1;
-      return (a.date || '') < (b.date || '') ? -1 : 1;
+      var va, vb;
+      if (gl.sortBy === '名稱')     { va = a.text||''; vb = b.text||''; }
+      else if (gl.sortBy === '截止期限') { va = a.deadline||''; vb = b.deadline||''; }
+      else if (gl.sortBy === '優先級')  { va = Number(a.priority)||1; vb = Number(b.priority)||1; }
+      else if (gl.sortBy === '標籤')   { va = (a.tags||[]).join(','); vb = (b.tags||[]).join(','); }
+      else { return 0; }
+      if (va < vb) return asc ? -1 : 1;
+      if (va > vb) return asc ? 1 : -1;
+      return 0;
     });
     $scope._groupCur = list;
     $scope.groupPendingCount = list.filter(function(t) { return !t.completed; }).length;
+    /* 重建行事曆 cell，讓群組任務即時反映 */
+    rebuildCalCells();
   }
+
+  function rebuildCalCells() {
+    var today = todayStr();
+    var y = $scope.calMonth.getFullYear(), m = $scope.calMonth.getMonth();
+    var firstDay = new Date(y, m, 1).getDay();
+    var daysInMonth = new Date(y, m + 1, 0).getDate();
+    var prevDays = new Date(y, m, 0).getDate();
+    var cells = [];
+    function makeCell(day, inMonth, ds) {
+      return { day: day, inMonth: inMonth, isToday: ds === today, date: ds, allTasks: getTasksForDate(ds) };
+    }
+    for (var i = 0; i < firstDay; i++) {
+      var d = prevDays - firstDay + 1 + i;
+      cells.push(makeCell(d, false, fmtDate(new Date(y, m - 1, d))));
+    }
+    for (var d2 = 1; d2 <= daysInMonth; d2++) {
+      cells.push(makeCell(d2, true, fmtDate(new Date(y, m, d2))));
+    }
+    var total = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+    for (var d3 = 1; d3 <= total - firstDay - daysInMonth; d3++) {
+      cells.push(makeCell(d3, false, fmtDate(new Date(y, m + 1, d3))));
+    }
+    $scope._calCells = cells;
+
+    var rows = [];
+    for (var ri = 0; ri < cells.length; ri += 7) {
+      var rowCells = cells.slice(ri, ri + 7);
+      var rowStart = rowCells[0].date;
+      var rowEnd   = rowCells[6].date;
+
+      /* 收集跨日 span：需同時具備 startTime 與 deadline 且日期不同 */
+      var spanMap = {};
+      rowCells.forEach(function(cell) {
+        cell.allTasks.forEach(function(t) {
+          var key = (t._isGroup ? 'g' : 'p') + String(t.id);
+          if (spanMap[key]) return;
+          if (!t.startTime || !t.deadline) return;
+          var tStart = t.startTime.substring(0, 10);
+          var tEnd   = t.deadline.substring(0, 10);
+          if (tStart >= tEnd) return;
+          if (tEnd < rowStart || tStart > rowEnd) return;
+
+          var sCol = 0, eCol = 6;
+          if (tStart > rowStart) {
+            for (var ci = 0; ci < rowCells.length; ci++) {
+              if (rowCells[ci].date >= tStart) { sCol = ci; break; }
+            }
+          }
+          if (tEnd < rowEnd) {
+            for (var ci2 = rowCells.length - 1; ci2 >= 0; ci2--) {
+              if (rowCells[ci2].date <= tEnd) { eCol = ci2; break; }
+            }
+          }
+          spanMap[key] = {
+            task: t, key: key, startCol: sCol, endCol: eCol, lane: -1,
+            roundLeft:  tStart >= rowStart,
+            roundRight: tEnd   <= rowEnd,
+            showLabel:  tStart >= rowStart
+          };
+        });
+      });
+
+      var spans = Object.keys(spanMap).map(function(k) { return spanMap[k]; });
+      spans.sort(function(a, b) {
+        if (a.startCol !== b.startCol) return a.startCol - b.startCol;
+        return (b.endCol - b.startCol) - (a.endCol - a.startCol);
+      });
+
+      /* 貪心分配 lane */
+      var laneEnds = [];
+      spans.forEach(function(sp) {
+        var placed = false;
+        for (var li = 0; li < laneEnds.length; li++) {
+          if (laneEnds[li] < sp.startCol) { sp.lane = li; laneEnds[li] = sp.endCol; placed = true; break; }
+        }
+        if (!placed) { sp.lane = laneEnds.length; laneEnds.push(sp.endCol); }
+      });
+
+      /* 多日任務 key set */
+      var multiSet = {};
+      spans.forEach(function(sp) { multiSet[sp.key] = true; });
+
+      /* 為每格建立 spanEntries（此格所屬的 span bar 片段） */
+      var cellSpanEntries = rowCells.map(function() { return []; });
+      spans.forEach(function(sp) {
+        for (var ci = sp.startCol; ci <= sp.endCol; ci++) {
+          cellSpanEntries[ci].push({
+            task:       sp.task,
+            key:        sp.key,
+            lane:       sp.lane,
+            showLabel:  sp.showLabel && (ci === sp.startCol),
+            roundLeft:  sp.roundLeft  && (ci === sp.startCol),
+            roundRight: sp.roundRight && (ci === sp.endCol)
+          });
+        }
+      });
+      cellSpanEntries.forEach(function(entries) {
+        entries.sort(function(a, b) { return a.lane - b.lane; });
+      });
+
+      var pCells = rowCells.map(function(cell, ci) {
+        var chipTasks = cell.allTasks.filter(function(t) {
+          return !multiSet[(t._isGroup ? 'g' : 'p') + String(t.id)];
+        });
+        return angular.extend({}, cell, {
+          chipTasks:   chipTasks,
+          hiddenCount: Math.max(0, chipTasks.length - 2),
+          spanEntries: cellSpanEntries[ci]
+        });
+      });
+
+      rows.push({ cells: pCells });
+    }
+    $scope._calRows = rows;
+  }
+
+  /* 點擊行事曆任務 → 跳至編輯（統一入口，避免 ng-click 中使用逗號運算子） */
+  $scope.calClickTask = function(task) {
+    if (task._isGroup) { $scope.setTab('group'); $scope.editGroupTask(task); }
+    else { $scope.calEditTask(task); }
+  };
+  $scope.calMoreClickTask = function(task) {
+    $scope.calMore.open = false;
+    $scope.calClickTask(task);
+  };
+
+  /* +N更多 modal */
+  $scope.calMore = { open: false, dateLabel: '', tasks: [] };
+  $scope.openCalMore = function(cell) {
+    $scope.calMore.dateLabel = cell.date;
+    $scope.calMore.tasks     = cell.allTasks;
+    $scope.calMore.open      = true;
+  };
+  $scope.closeCalMore = function() { $scope.calMore.open = false; };
 
   $scope.createGroup = function() {
     if (!$scope.groupUi.newGroupName.trim()) return;
@@ -2109,9 +2729,36 @@ angular.module('todoApp', [])
   };
 
   $scope.startAddGroupTask = function() {
-    $scope.groupForm = emptyForm(); $scope.groupEditId = null; $scope.isAddingGroup = true;
+    $scope.groupForm = emptyForm();
+    $scope.groupEditId = null;
+    $scope.isAddingGroup = true;
+    $scope.ui.grpNewStepText = '';
+    $scope.ui.grpStepEditId  = null;
   };
-  $scope.cancelGroupForm = function() { $scope.isAddingGroup = false; $scope.groupEditId = null; };
+  $scope.cancelGroupForm = function() {
+    $scope.isAddingGroup = false;
+    $scope.groupEditId   = null;
+    $scope.ui.grpNewStepText = '';
+    $scope.ui.grpStepEditId  = null;
+  };
+
+  /* 群組任務子步驟 */
+  $scope.addGrpFormStep = function() {
+    var txt = ($scope.ui.grpNewStepText || '').trim();
+    if (!txt) return;
+    $scope.groupForm.steps.push({ id: Date.now() + Math.random(), text: txt, completed: false });
+    $scope.ui.grpNewStepText = '';
+  };
+  $scope.grpStepKeydown = function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); $scope.addGrpFormStep(); }
+  };
+  $scope.removeGrpFormStep = function(id) {
+    $scope.groupForm.steps = $scope.groupForm.steps.filter(function(s) { return s.id !== id; });
+  };
+  $scope.toggleGrpFormStep = function(id) {
+    var s = $scope.groupForm.steps.find(function(s) { return s.id === id; });
+    if (s) s.completed = !s.completed;
+  };
   $scope.saveGroupTask = function(e) {
     if (e) e.preventDefault();
     if (!($scope.groupForm.text || '').trim()) return;
@@ -2119,11 +2766,21 @@ angular.module('todoApp', [])
     data.startTime = normalizeDeadline(data.startTime);
     data.deadline  = normalizeDeadline(data.deadline);
     data.customReminderTime = normalizeDeadline(data.customReminderTime);
+    /* 計算提醒時間（與個人任務相同邏輯） */
+    var rt = data.reminderType, calcReminder = null;
+    if (rt === 'custom') {
+      calcReminder = data.customReminderTime || data.deadline || null;
+    } else if (data.deadline && rt !== 'none') {
+      calcReminder = new Date(new Date(data.deadline).getTime() - (parseInt(rt) || 0) * 60000).toISOString();
+    }
+    data.calculatedReminder = calcReminder;
+    data.isOverdue = data.deadline ? new Date() >= new Date(data.deadline) : false;
     data.updatedBy = _uid; data.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
     if ($scope.groupEditId) {
+      delete notifiedIds['g_' + $scope.groupEditId];
       db.collection('groups').doc($scope.activeGroupId).collection('tasks').doc($scope.groupEditId).update(data);
     } else {
-      data.createdBy = _uid; data.completed = false; data.isOverdue = false;
+      data.createdBy = _uid; data.completed = false;
       db.collection('groups').doc($scope.activeGroupId).collection('tasks').add(data);
     }
     $scope.cancelGroupForm();
@@ -2138,7 +2795,10 @@ angular.module('todoApp', [])
       deadline:  task.deadline  ? new Date(task.deadline)  : null,
       customReminderTime: task.customReminderTime ? new Date(task.customReminderTime) : null
     };
-    $scope.groupEditId = task.id; $scope.isAddingGroup = true;
+    $scope.groupEditId = task.id;
+    $scope.isAddingGroup = true;
+    $scope.ui.grpNewStepText = '';
+    $scope.ui.grpStepEditId  = null;
   };
   $scope.toggleGroupTask = function(id, done) {
     db.collection('groups').doc($scope.activeGroupId).collection('tasks').doc(id)
