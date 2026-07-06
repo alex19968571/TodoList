@@ -341,6 +341,12 @@
     <i class="bi bi-calendar3 fs-5"></i>
     <span class="nav-label">{{t.calendar}}</span>
   </button>
+  <button class="nav-btn" ng-class="{active:tab==='group'}" ng-click="setTab('group')"
+          ng-if="currentUser && currentUser!=='__guest__'">
+    <i class="bi bi-people-fill fs-5"></i>
+    <span class="nav-label">群組任務</span>
+    <span class="badge-count" ng-if="groupPendingCount>0">{{groupPendingCount}}</span>
+  </button>
   <button class="nav-btn" ng-class="{active:tab==='settings'}" ng-click="setTab('settings')">
     <i class="bi bi-gear-fill fs-5"></i>
     <span class="nav-label">{{t.settings}}</span>
@@ -952,6 +958,230 @@
     </div>
   </div>
 
+  <!-- ===== 群組任務 ===== -->
+  <div class="tasks-panel" ng-if="tab==='group'">
+
+    <!-- 狀態 A：尚未加入任何群組 -->
+    <div ng-if="!activeGroupId" class="text-center" style="padding:5rem 2rem;">
+      <i class="bi bi-people" style="font-size:3.5rem;color:var(--muted);"></i>
+      <p class="mt-3 mb-4" style="color:var(--muted);font-size:.95rem;">尚未加入任何群組</p>
+      <div class="d-flex gap-2 justify-content-center flex-wrap">
+        <button class="btn btn-danger" ng-click="showCreateGroupModal=true;groupUi.error=''">
+          <i class="bi bi-plus-lg me-1"></i>建立群組
+        </button>
+        <button class="btn btn-outline-secondary" ng-click="showJoinGroupModal=true;groupUi.error=''">
+          <i class="bi bi-door-open me-1"></i>輸入邀請碼加入
+        </button>
+      </div>
+    </div>
+
+    <!-- 狀態 B：已加入群組 -->
+    <div ng-if="activeGroupId">
+
+      <!-- 標題列 -->
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h1 class="fw-bold mb-0" style="font-size:1.45rem;">
+          <i class="bi bi-people-fill me-2" style="color:var(--accent);"></i>{{activeGroup.name}}
+        </h1>
+        <button class="btn btn-sm btn-outline-secondary" ng-click="showGroupInfoPanel=!showGroupInfoPanel">
+          <i class="bi bi-info-circle me-1"></i>群組資訊
+        </button>
+      </div>
+
+      <!-- 群組資訊面板（可折疊） -->
+      <div class="form-card mb-4" ng-if="showGroupInfoPanel">
+        <div class="mb-3">
+          <div class="fw-bold mb-1" style="font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">邀請碼</div>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <code style="font-size:1.05rem;letter-spacing:.18em;background:var(--hover);padding:.3rem .8rem;border-radius:6px;font-weight:700;">{{activeGroup.inviteCode}}</code>
+            <small style="color:var(--muted);">分享此碼讓其他人加入</small>
+          </div>
+        </div>
+        <div class="mb-3">
+          <div class="fw-bold mb-2" style="font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">成員（{{groupMemberList.length}} 人）</div>
+          <div ng-repeat="m in groupMemberList" class="d-flex align-items-center gap-2 mb-2">
+            <div class="sidebar-avatar" style="width:26px;height:26px;font-size:.68rem;flex-shrink:0;">
+              {{m.email.charAt(0).toUpperCase()}}
+            </div>
+            <span style="font-size:.85rem;">{{m.email}}</span>
+            <span ng-if="m.role==='owner'" class="badge ms-1"
+                  style="background:var(--accent-light);color:var(--accent);font-size:.68rem;">擁有者</span>
+          </div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+          <button class="btn btn-sm btn-outline-danger" ng-click="leaveGroup()">
+            <i class="bi bi-door-closed me-1"></i>離開群組
+          </button>
+          <button class="btn btn-sm btn-outline-secondary" ng-click="showCreateGroupModal=true;groupUi.error=''">
+            建立新群組
+          </button>
+          <button class="btn btn-sm btn-outline-secondary" ng-click="showJoinGroupModal=true;groupUi.error=''">
+            加入其他群組
+          </button>
+        </div>
+      </div>
+
+      <!-- 新增表單 -->
+      <div class="form-card mb-3" ng-if="isAddingGroup">
+        <form ng-submit="saveGroupTask($event)" novalidate>
+          <input type="text" class="title-input mb-2" placeholder="任務名稱..." ng-model="groupForm.text" autofocus>
+          <textarea class="c-input mb-3" rows="2" placeholder="任務描述..." ng-model="groupForm.description"></textarea>
+          <!-- 優先級 -->
+          <div class="row g-3 mb-3">
+            <div class="col-12 col-md-6">
+              <label class="d-block mb-1" style="font-size:.8rem;color:var(--muted);">
+                <i class="bi bi-flag me-1"></i>優先級
+              </label>
+              <div class="p-dropdown">
+                <button type="button" class="p-dropdown-trigger" ng-click="ui.isGrpPrioOpen=!ui.isGrpPrioOpen">
+                  <i class="bi bi-flag-fill" style="color:{{getPrioColor(groupForm.priority)}};flex-shrink:0;"></i>
+                  <span class="flex-grow-1">{{getPrioLabel(groupForm.priority)}}</span>
+                  <i class="bi bi-chevron-down" style="font-size:.72rem;opacity:.6;flex-shrink:0;"></i>
+                </button>
+                <div class="p-dropdown-overlay" ng-if="ui.isGrpPrioOpen" ng-click="ui.isGrpPrioOpen=false"></div>
+                <div class="p-dropdown-menu" ng-if="ui.isGrpPrioOpen">
+                  <div class="p-dropdown-item" ng-repeat="p in settings.priorities track by p.level"
+                       ng-click="groupForm.priority=''+p.level; ui.isGrpPrioOpen=false">
+                    <i class="bi bi-flag-fill" style="color:{{p.color}};flex-shrink:0;"></i>
+                    <span class="flex-grow-1">{{p.label}}</span>
+                    <i class="bi bi-check fw-bold" style="color:var(--accent);"
+                       ng-if="groupForm.priority==''+p.level"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="d-block mb-1" style="font-size:.8rem;color:var(--muted);">
+                <i class="bi bi-clock me-1"></i>截止期限
+              </label>
+              <input type="datetime-local" class="c-input" ng-model="groupForm.deadline">
+            </div>
+          </div>
+          <!-- 啟用時間 -->
+          <div class="mb-3">
+            <label class="d-block mb-1" style="font-size:.8rem;color:var(--muted);">
+              <i class="bi bi-play-circle me-1"></i>啟用時間
+            </label>
+            <input type="datetime-local" class="c-input" ng-model="groupForm.startTime">
+          </div>
+          <!-- 標籤 -->
+          <div class="mb-3">
+            <label class="d-block mb-2" style="font-size:.8rem;color:var(--muted);">
+              <i class="bi bi-tag me-1"></i>標籤
+            </label>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="tag-chip"
+                      ng-class="{sel:groupForm.tags.indexOf(tag)>=0}"
+                      ng-repeat="tag in settings.tags"
+                      ng-click="groupForm.tags.indexOf(tag)>=0 ? groupForm.tags.splice(groupForm.tags.indexOf(tag),1) : groupForm.tags.push(tag)">
+                {{tag}}
+              </button>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div class="d-flex justify-content-end gap-2 mt-2">
+            <button type="button" class="btn btn-light" ng-click="cancelGroupForm()">取消</button>
+            <button type="submit" class="btn btn-danger" ng-disabled="!(groupForm.text||'').trim()">
+              {{groupEditId ? '更新任務' : '儲存任務'}}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- 新增按鈕 -->
+      <button class="add-btn" ng-if="!isAddingGroup" ng-click="startAddGroupTask()">
+        <i class="bi bi-plus-circle"></i> 新增群組任務...
+      </button>
+
+      <!-- 任務列表 -->
+      <div class="mt-1">
+        <div class="text-center py-5" style="color:var(--muted);" ng-if="!_groupCur.length && !isAddingGroup">
+          <i class="bi bi-people d-block mb-2" style="font-size:2.5rem;opacity:.25;"></i>
+          群組目前沒有任務
+        </div>
+        <div class="task-item"
+             ng-repeat="task in _groupCur track by task.id"
+             ng-class="{done:task.completed}"
+             ng-style="{'border-left-color':getPrioColor(task.priority)}">
+          <div class="d-flex align-items-start gap-3">
+            <button class="btn-icon mt-1 flex-shrink-0" type="button"
+                    ng-click="toggleGroupTask(task.id, task.completed);$event.stopPropagation()">
+              <i class="bi fs-5" ng-class="task.completed?'bi-check-circle-fill':'bi-circle'"
+                 style="color:{{getPrioColor(task.priority)}}"></i>
+            </button>
+            <div class="flex-grow-1 min-w-0" style="cursor:pointer;" ng-click="editGroupTask(task)">
+              <div class="fw-medium d-flex align-items-center gap-1">
+                <i class="bi bi-flag-fill flex-shrink-0" style="font-size:.7rem;color:{{getPrioColor(task.priority)}}"></i>
+                <span ng-class="{'text-decoration-line-through text-muted':task.completed}">{{task.text}}</span>
+              </div>
+              <p class="text-pre mt-1 mb-0" style="font-size:.83rem;color:var(--muted);" ng-if="task.description">{{task.description}}</p>
+              <div class="d-flex flex-wrap gap-3 mt-1 meta-row">
+                <span class="deadline-text" ng-if="task.deadline"><i class="bi bi-clock me-1"></i>{{formatDT(task.deadline)}}</span>
+                <span ng-if="task.tags&&task.tags.length"><i class="bi bi-tag me-1"></i>{{task.tags.join(', ')}}</span>
+                <span ng-if="task.updatedBy" style="color:var(--muted);font-size:.75rem;">
+                  <i class="bi bi-pencil-fill" style="font-size:.65rem;"></i> {{getMemberEmail(task.updatedBy)}}
+                </span>
+              </div>
+            </div>
+            <div class="task-actions flex-shrink-0">
+              <button class="btn-icon" type="button" ng-click="deleteGroupTask(task.id);$event.stopPropagation()" title="刪除">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /activeGroupId -->
+  </div><!-- /group panel -->
+
+  <!-- ===== 建立群組 Modal ===== -->
+  <div class="map-overlay" ng-if="showCreateGroupModal" ng-click="showCreateGroupModal=false">
+    <div class="map-box" ng-click="$event.stopPropagation()" style="max-width:400px;">
+      <div class="d-flex justify-content-between align-items-center p-3" style="border-bottom:1px solid var(--border);">
+        <h6 class="mb-0 fw-bold"><i class="bi bi-people me-2"></i>建立群組</h6>
+        <button class="btn-icon" ng-click="showCreateGroupModal=false"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="p-3">
+        <label class="d-block mb-1" style="font-size:.85rem;font-weight:500;">群組名稱</label>
+        <input type="text" class="c-input mb-3" ng-model="groupUi.newGroupName" placeholder="例如：家庭任務、專案小組"
+               ng-keydown="$event.keyCode===13 && createGroup()">
+        <div class="alert alert-danger py-2 mb-3" ng-if="groupUi.error" style="font-size:.85rem;">{{groupUi.error}}</div>
+        <div class="d-flex gap-2 justify-content-end">
+          <button class="btn btn-light" ng-click="showCreateGroupModal=false">取消</button>
+          <button class="btn btn-danger" ng-click="createGroup()" ng-disabled="groupUi.loading || !groupUi.newGroupName.trim()">
+            <span ng-if="groupUi.loading"><i class="bi bi-hourglass-split me-1"></i>建立中...</span>
+            <span ng-if="!groupUi.loading">建立</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 加入群組 Modal ===== -->
+  <div class="map-overlay" ng-if="showJoinGroupModal" ng-click="showJoinGroupModal=false">
+    <div class="map-box" ng-click="$event.stopPropagation()" style="max-width:400px;">
+      <div class="d-flex justify-content-between align-items-center p-3" style="border-bottom:1px solid var(--border);">
+        <h6 class="mb-0 fw-bold"><i class="bi bi-door-open me-2"></i>加入群組</h6>
+        <button class="btn-icon" ng-click="showJoinGroupModal=false"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="p-3">
+        <label class="d-block mb-1" style="font-size:.85rem;font-weight:500;">邀請碼</label>
+        <input type="text" class="c-input mb-3" ng-model="groupUi.joinCode" placeholder="輸入 6 碼邀請碼..."
+               style="letter-spacing:.15em;text-transform:uppercase;"
+               ng-keydown="$event.keyCode===13 && joinGroup()">
+        <div class="alert alert-danger py-2 mb-3" ng-if="groupUi.error" style="font-size:.85rem;">{{groupUi.error}}</div>
+        <div class="d-flex gap-2 justify-content-end">
+          <button class="btn btn-light" ng-click="showJoinGroupModal=false">取消</button>
+          <button class="btn btn-danger" ng-click="joinGroup()" ng-disabled="groupUi.loading || !groupUi.joinCode.trim()">
+            <span ng-if="groupUi.loading"><i class="bi bi-hourglass-split me-1"></i>加入中...</span>
+            <span ng-if="!groupUi.loading">加入</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div><!-- /main-wrap -->
 
 <script>
@@ -1163,6 +1393,23 @@ angular.module('todoApp', [])
   var _saveTimer = null;
   var _firestoreLoaded = false;
   var _wasGuest = localStorage.getItem('tfp_guestMode') === '1';
+  var _groupUnsubscribe    = null;
+  var _groupDocUnsubscribe = null;
+
+  /* 群組任務狀態 */
+  $scope.activeGroupId      = null;
+  $scope.activeGroup        = null;
+  $scope.groupMemberList    = [];
+  $scope.groupTasks         = [];
+  $scope._groupCur          = [];
+  $scope.groupPendingCount  = 0;
+  $scope.isAddingGroup      = false;
+  $scope.groupEditId        = null;
+  $scope.groupForm          = {};
+  $scope.showGroupInfoPanel     = false;
+  $scope.showCreateGroupModal   = false;
+  $scope.showJoinGroupModal     = false;
+  $scope.groupUi = { newGroupName:'', joinCode:'', error:'', loading:false };
 
   /* Settings — 從 localStorage 立即載入（避免畫面閃爍），登入後再由 Firestore 覆蓋 */
   var savedS = {};
@@ -1246,7 +1493,8 @@ angular.module('todoApp', [])
     isYearPickerOpen: false,    /* 年份選擇器 */
     stepEditId: null,           /* 正在編輯的步驟 id */
     prioEditLevel: null,        /* 正在編輯的優先級 level */
-    prioFilterOpen: false       /* 布局面板優先級過濾下拉 */
+    prioFilterOpen: false,      /* 布局面板優先級過濾下拉 */
+    isGrpPrioOpen: false        /* 群組任務表單優先級下拉 */
   };
 
   /* 布局面板狀態 — 用物件包裝，讓 ng-if 子 scope 修改時能穿透到 controller scope */
@@ -1745,6 +1993,166 @@ angular.module('todoApp', [])
 
   /* ===== Firebase Auth 函數 ===== */
 
+  /* ===== 群組任務函式 ===== */
+
+  function genInviteCode() {
+    var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', code = '';
+    for (var i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+    return code;
+  }
+
+  function activateGroup(groupId) {
+    $scope.activeGroupId = groupId;
+    subscribeGroupDoc(groupId);
+    subscribeGroupTasks(groupId);
+  }
+
+  function subscribeGroupDoc(groupId) {
+    if (_groupDocUnsubscribe) _groupDocUnsubscribe();
+    _groupDocUnsubscribe = db.collection('groups').doc(groupId).onSnapshot(function(doc) {
+      $scope.$apply(function() {
+        if (!doc.exists) { $scope.activeGroupId = null; $scope.activeGroup = null; return; }
+        $scope.activeGroup = doc.data();
+        var m = $scope.activeGroup.members || {};
+        $scope.groupMemberList = Object.keys(m).map(function(uid) {
+          return { uid: uid, email: m[uid].email, role: m[uid].role };
+        });
+      });
+    });
+  }
+
+  function subscribeGroupTasks(groupId) {
+    if (_groupUnsubscribe) { _groupUnsubscribe(); _groupUnsubscribe = null; }
+    _groupUnsubscribe = db.collection('groups').doc(groupId).collection('tasks')
+      .onSnapshot(function(snapshot) {
+        $scope.$apply(function() {
+          $scope.groupTasks = snapshot.docs.map(function(d) {
+            return angular.extend({ id: d.id }, d.data());
+          });
+          rebuildGroupLists();
+        });
+      });
+  }
+
+  function unsubscribeGroupTasks() {
+    if (_groupUnsubscribe)    { _groupUnsubscribe();    _groupUnsubscribe = null; }
+    if (_groupDocUnsubscribe) { _groupDocUnsubscribe(); _groupDocUnsubscribe = null; }
+    $scope.groupTasks = []; $scope._groupCur = [];
+    $scope.activeGroupId = null; $scope.activeGroup = null; $scope.groupMemberList = [];
+  }
+
+  function rebuildGroupLists() {
+    var list = $scope.groupTasks.filter(function(t) { return !t.isOverdue; });
+    list.sort(function(a, b) {
+      if (a.completed !== b.completed) return a.completed ? 1 : -1;
+      return (a.date || '') < (b.date || '') ? -1 : 1;
+    });
+    $scope._groupCur = list;
+    $scope.groupPendingCount = list.filter(function(t) { return !t.completed; }).length;
+  }
+
+  $scope.createGroup = function() {
+    if (!$scope.groupUi.newGroupName.trim()) return;
+    $scope.groupUi.loading = true; $scope.groupUi.error = '';
+    var code = genInviteCode();
+    var groupRef = db.collection('groups').doc();
+    var batch = db.batch();
+    var memberObj = {};
+    memberObj[_uid] = { email: $scope.currentUser, joinedAt: firebase.firestore.FieldValue.serverTimestamp(), role: 'owner' };
+    batch.set(groupRef, {
+      name: $scope.groupUi.newGroupName.trim(), inviteCode: code,
+      createdBy: _uid, createdAt: firebase.firestore.FieldValue.serverTimestamp(), members: memberObj
+    });
+    batch.set(db.collection('groupCodes').doc(code), { groupId: groupRef.id });
+    batch.update(db.collection('users').doc(_uid), { groups: firebase.firestore.FieldValue.arrayUnion(groupRef.id) });
+    batch.commit().then(function() {
+      $scope.$apply(function() {
+        $scope.groupUi.loading = false; $scope.showCreateGroupModal = false;
+        $scope.groupUi.newGroupName = ''; activateGroup(groupRef.id);
+      });
+    }).catch(function(e) {
+      $scope.$apply(function() { $scope.groupUi.error = e.message; $scope.groupUi.loading = false; });
+    });
+  };
+
+  $scope.joinGroup = function() {
+    var code = ($scope.groupUi.joinCode || '').toUpperCase().trim();
+    if (!code) return;
+    $scope.groupUi.loading = true; $scope.groupUi.error = '';
+    db.collection('groupCodes').doc(code).get().then(function(snap) {
+      if (!snap.exists) throw new Error('邀請碼不存在');
+      var gid = snap.data().groupId;
+      var upd = {};
+      upd['members.' + _uid] = { email: $scope.currentUser, joinedAt: firebase.firestore.FieldValue.serverTimestamp(), role: 'member' };
+      return db.collection('groups').doc(gid).update(upd)
+        .then(function() { return db.collection('users').doc(_uid).update({ groups: firebase.firestore.FieldValue.arrayUnion(gid) }); })
+        .then(function() { return gid; });
+    }).then(function(gid) {
+      $scope.$apply(function() {
+        $scope.groupUi.loading = false; $scope.showJoinGroupModal = false;
+        $scope.groupUi.joinCode = ''; activateGroup(gid);
+      });
+    }).catch(function(e) {
+      $scope.$apply(function() { $scope.groupUi.error = e.message; $scope.groupUi.loading = false; });
+    });
+  };
+
+  $scope.leaveGroup = function() {
+    if (!confirm('確定離開群組？')) return;
+    var gid = $scope.activeGroupId;
+    var upd = {};
+    upd['members.' + _uid] = firebase.firestore.FieldValue.delete();
+    db.collection('groups').doc(gid).update(upd);
+    db.collection('users').doc(_uid).update({ groups: firebase.firestore.FieldValue.arrayRemove(gid) });
+    unsubscribeGroupTasks();
+    $scope.showGroupInfoPanel = false;
+  };
+
+  $scope.startAddGroupTask = function() {
+    $scope.groupForm = emptyForm(); $scope.groupEditId = null; $scope.isAddingGroup = true;
+  };
+  $scope.cancelGroupForm = function() { $scope.isAddingGroup = false; $scope.groupEditId = null; };
+  $scope.saveGroupTask = function(e) {
+    if (e) e.preventDefault();
+    if (!($scope.groupForm.text || '').trim()) return;
+    var data = angular.copy($scope.groupForm);
+    data.startTime = normalizeDeadline(data.startTime);
+    data.deadline  = normalizeDeadline(data.deadline);
+    data.customReminderTime = normalizeDeadline(data.customReminderTime);
+    data.updatedBy = _uid; data.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+    if ($scope.groupEditId) {
+      db.collection('groups').doc($scope.activeGroupId).collection('tasks').doc($scope.groupEditId).update(data);
+    } else {
+      data.createdBy = _uid; data.completed = false; data.isOverdue = false;
+      db.collection('groups').doc($scope.activeGroupId).collection('tasks').add(data);
+    }
+    $scope.cancelGroupForm();
+  };
+  $scope.editGroupTask = function(task) {
+    $scope.groupForm = {
+      text: task.text, description: task.description || '',
+      priority: task.priority || '1', tags: angular.copy(task.tags || []),
+      steps: angular.copy(task.steps || []), location: task.location || '',
+      reminderType: task.reminderType || '0',
+      startTime: task.startTime ? new Date(task.startTime) : null,
+      deadline:  task.deadline  ? new Date(task.deadline)  : null,
+      customReminderTime: task.customReminderTime ? new Date(task.customReminderTime) : null
+    };
+    $scope.groupEditId = task.id; $scope.isAddingGroup = true;
+  };
+  $scope.toggleGroupTask = function(id, done) {
+    db.collection('groups').doc($scope.activeGroupId).collection('tasks').doc(id)
+      .update({ completed: !done, updatedBy: _uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  };
+  $scope.deleteGroupTask = function(id) {
+    if (!confirm('確定刪除此任務？')) return;
+    db.collection('groups').doc($scope.activeGroupId).collection('tasks').doc(id).delete();
+  };
+  $scope.getMemberEmail = function(uid) {
+    var m = ($scope.groupMemberList || []).find(function(x) { return x.uid === uid; });
+    return m ? m.email : '(未知)';
+  };
+
   /* Firestore 讀取使用者資料 */
   function loadFromFirestore(uid) {
     db.collection('users').doc(uid).get().then(function(doc) {
@@ -1758,6 +2166,8 @@ angular.module('todoApp', [])
             applyFontSize($scope.settings.fontSize);
             applyAccentColor($scope.settings.accentColor);
           }
+          var myGroups = data.groups || [];
+          if (myGroups.length) activateGroup(myGroups[myGroups.length - 1]);
         } else {
           $scope.tasks = [];
         }
@@ -1825,6 +2235,8 @@ angular.module('todoApp', [])
   };
 
   $scope.logout = function() {
+    unsubscribeGroupTasks();
+    $scope.showGroupInfoPanel = false;
     var wasFirebase = $scope.currentUser !== '__guest__';
     $scope.currentUser = null;
     _uid = null;
