@@ -28,7 +28,20 @@
     .sidebar{position:fixed;left:0;top:0;bottom:0;width:240px;background:var(--sidebar);border-right:1px solid var(--border);padding:1rem;display:flex;flex-direction:column;z-index:200;}
     .brand{display:flex;align-items:center;gap:.6rem;margin-bottom:2rem;padding:.25rem .5rem;}
     .brand-icon{width:34px;height:34px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem;}
+    .brand-logo{width:34px;height:34px;object-fit:contain;flex-shrink:0;}
     .brand-name{font-weight:700;font-size:1.05rem;}
+    /* 膠囊切換按鈕 */
+    .layout-view-toggle{display:flex;background:var(--hover);border-radius:20px;padding:3px;gap:2px;}
+    .layout-view-toggle .toggle-btn{flex:1;border:none;background:transparent;border-radius:16px;padding:5px 14px;font-size:.82rem;color:var(--muted);cursor:pointer;transition:background .2s,color .2s,box-shadow .2s;white-space:nowrap;}
+    .layout-view-toggle .toggle-btn.active{background:var(--card);color:var(--text);font-weight:600;box-shadow:0 1px 4px rgba(0,0,0,.12);}
+    body.dark-theme .layout-view-toggle .toggle-btn.active{box-shadow:0 1px 4px rgba(0,0,0,.4);}
+    /* 優先級過濾下拉 */
+    .prio-filter-wrap{position:relative;flex:1;}
+    .prio-filter-trigger{display:flex;align-items:center;justify-content:space-between;gap:6px;background:var(--inp);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.3rem .65rem;font-size:.82rem;cursor:pointer;width:100%;text-align:left;}
+    .prio-filter-trigger:hover{border-color:var(--accent);}
+    .prio-filter-menu{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--card);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.12);z-index:600;padding:4px 0;}
+    .prio-filter-menu .priority-filter-item{padding:5px 12px;}
+    .prio-filter-menu .priority-filter-item:hover{background:var(--hover);}
     .nav-btn{display:flex;align-items:center;gap:.65rem;padding:.55rem .75rem;border-radius:8px;border:none;background:transparent;color:var(--text);cursor:pointer;width:100%;text-align:left;font-size:.92rem;transition:background .15s,color .15s;margin-bottom:2px;}
     .nav-btn:hover{background:rgba(0,0,0,.06);}
     body.dark-theme .nav-btn:hover{background:rgba(255,255,255,.07);}
@@ -203,6 +216,26 @@
     /* ── 側欄使用者區域 ── */
     .sidebar-user{margin-top:auto;border-top:1px solid var(--border);padding:.75rem .5rem 0;}
     .sidebar-avatar{width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.82rem;font-weight:700;}
+
+    /* ── 布局面板 ── */
+    .layout-panel{position:absolute;right:0;top:calc(100% + 8px);width:280px;background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:500;padding:4px 0;}
+    .layout-section{padding:12px 16px;border-bottom:1px solid var(--border);}
+    .layout-section:last-child{border-bottom:none;}
+    .layout-section-title{font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;}
+    .layout-label{font-size:.82rem;color:var(--text);min-width:52px;padding-top:4px;flex-shrink:0;}
+    .priority-filter-list{display:flex;flex-direction:column;gap:4px;}
+    .priority-filter-item{display:flex;align-items:center;gap:6px;font-size:.83rem;}
+    .group-header{font-size:.78rem;font-weight:600;color:var(--muted);padding:8px 0 4px;border-bottom:1px solid var(--border);margin-bottom:6px;margin-top:12px;}
+    /* ── 週視圖 (Tab 形式) ── */
+    .week-day-tabs{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:2px solid var(--border);margin-bottom:1rem;}
+    .week-day-tab{text-align:center;padding:6px 4px;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:border-color .15s;}
+    .week-day-tab:hover{background:var(--hover);}
+    .week-day-tab.active{border-bottom-color:var(--accent);}
+    .week-day-tab-label{display:block;font-size:.72rem;color:var(--muted);margin-bottom:2px;}
+    .week-day-tab-num{display:inline-block;width:26px;height:26px;line-height:26px;text-align:center;border-radius:50%;font-size:.88rem;font-weight:500;}
+    .week-day-tab-num.today-badge{background:var(--accent);color:#fff;}
+    .week-date-header{font-size:1rem;padding:.75rem 0 .5rem;}
+    .layout-overlay{position:fixed;inset:0;}
   </style>
 </head>
 
@@ -234,7 +267,7 @@
       <div style="width:52px;height:52px;background:var(--accent);border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.6rem;margin:0 auto .75rem;">
         <i class="bi bi-check-circle-fill"></i>
       </div>
-      <h5 class="fw-bold mb-1" style="color:#2d3748;">TaskFlow Pro</h5>
+      <h5 class="fw-bold mb-1" style="color:#2d3748;">KingList</h5>
       <p style="font-size:.85rem;color:#718096;margin:0;">登入以儲存並同步您的任務</p>
     </div>
     <!-- 分頁 -->
@@ -295,8 +328,8 @@
 <!-- ===== SIDEBAR ===== -->
 <nav class="sidebar">
   <div class="brand">
-    <div class="brand-icon"><i class="bi bi-check-circle-fill"></i></div>
-    <span class="brand-name">TaskFlow Pro</span>
+    <img src="logo.png" class="brand-logo" alt="KingList" onerror="this.style.display='none'">
+    <span class="brand-name">KingList</span>
   </div>
   <button class="nav-btn" ng-class="{active:tab==='today'}" ng-click="setTab('today')">
     <i class="bi bi-sun-fill fs-5"></i>
@@ -397,13 +430,81 @@
   <!-- ===== TODAY TAB ===== -->
   <div class="tasks-panel" ng-if="tab==='today'">
     <header class="mb-4">
-      <h1 class="fw-bold" style="font-size:1.6rem;">
-        <span ng-if="isSelToday()">{{t.today}}</span>
-        <span ng-if="!isSelToday()">{{selDateLabel()}}</span>
-      </h1>
+      <div class="d-flex align-items-center justify-content-between">
+        <h1 class="fw-bold mb-0" style="font-size:1.6rem;">
+          <span ng-if="viewMode==='week'||isSelToday()">{{t.today}}</span>
+          <span ng-if="viewMode==='list'&&!isSelToday()">{{selDateLabel()}}</span>
+        </h1>
+        <div class="position-relative" style="z-index:501;">
+          <div class="layout-overlay" ng-show="layoutPanelOpen" ng-click="layoutPanelOpen=false;ui.prioFilterOpen=false"></div>
+          <button class="btn btn-sm btn-outline-secondary" style="position:relative;" ng-click="layoutPanelOpen=!layoutPanelOpen" title="布局">
+            <i class="bi bi-layout-three-columns"></i>
+          </button>
+          <div class="layout-panel" ng-show="layoutPanelOpen" ng-click="ui.prioFilterOpen=false;$event.stopPropagation()">
+            <!-- 1. 顯示方式 -->
+            <div class="layout-section">
+              <div class="layout-section-title">顯示方式</div>
+              <div class="layout-view-toggle">
+                <button class="toggle-btn" ng-class="{active: viewMode==='list'}" ng-click="viewMode='list'">
+                  <i class="bi bi-list-ul"></i> 列表
+                </button>
+                <button class="toggle-btn" ng-class="{active: viewMode==='week'}" ng-click="viewMode='week'">
+                  <i class="bi bi-calendar-week"></i> 週
+                </button>
+              </div>
+            </div>
+            <!-- 2. 排序 -->
+            <div class="layout-section">
+              <div class="layout-section-title">排序</div>
+              <div class="d-flex gap-2 align-items-center mb-2">
+                <label class="layout-label">排序</label>
+                <select class="form-select form-select-sm" ng-model="layout.sortBy">
+                  <option>無</option><option>名稱</option><option>日期</option><option>啟用時間</option><option>截止期限</option><option>優先級</option><option>標籤</option>
+                </select>
+              </div>
+              <div class="d-flex gap-2 align-items-center">
+                <label class="layout-label">順序</label>
+                <select class="form-select form-select-sm" ng-model="layout.sortOrder">
+                  <option>升序</option><option>降序</option>
+                </select>
+              </div>
+            </div>
+            <!-- 3. 過濾 -->
+            <div class="layout-section">
+              <div class="layout-section-title">過濾</div>
+              <div class="d-flex gap-2 align-items-center mb-2">
+                <label class="layout-label">日期</label>
+                <select class="form-select form-select-sm" ng-model="layout.filterDate">
+                  <option>全部</option><option>今天</option><option>這週</option><option>近2週</option><option>這個月</option>
+                </select>
+              </div>
+              <div class="d-flex gap-2 align-items-center">
+                <label class="layout-label">優先級</label>
+                <div class="prio-filter-wrap">
+                  <button type="button" class="prio-filter-trigger"
+                          ng-click="ui.prioFilterOpen=!ui.prioFilterOpen;$event.stopPropagation()">
+                    <span>{{filterPriorities.length ? '已選 '+filterPriorities.length+' 項' : '全部'}}</span>
+                    <i class="bi bi-chevron-down" style="font-size:.72rem;"></i>
+                  </button>
+                  <div class="prio-filter-menu" ng-if="ui.prioFilterOpen" ng-click="$event.stopPropagation()">
+                    <div ng-repeat="p in settings.priorities" class="priority-filter-item">
+                      <input type="checkbox" class="form-check-input" id="pf-{{p.level}}"
+                             ng-checked="filterPriorities.indexOf(p.level)>=0"
+                             ng-click="togglePriorityFilter(p.level)">
+                      <label class="form-check-label" for="pf-{{p.level}}" ng-style="{'color':p.color}">
+                        <i class="bi bi-flag-fill"></i> {{p.label}}
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </header>
 
-    <button class="add-btn" ng-if="!isAdding" ng-click="startAdd()">
+    <button class="add-btn" ng-if="!isAdding && viewMode==='list'" ng-click="startAdd()">
       <i class="bi bi-plus-circle"></i> {{t.addTask}}
     </button>
 
@@ -574,52 +675,174 @@
       </form>
     </div>
 
-    <!-- TASK LIST -->
-    <div class="mt-1">
+    <!-- TASK LIST (列表模式) -->
+    <div class="mt-1" ng-if="viewMode==='list'">
       <div class="text-center py-5" style="color:var(--muted);" ng-if="!_cur.length">
         <i class="bi bi-check-all d-block mb-2" style="font-size:2.5rem;opacity:.25;"></i>
         {{t.noTasks}}
       </div>
-      <div class="task-item"
-           ng-repeat="task in _cur track by task.id"
-           ng-class="{done:task.completed,dragging:dnd.dragId===task.id,'drop-before':dnd.drop&&dnd.drop.id===task.id&&dnd.drop.pos==='before','drop-after':dnd.drop&&dnd.drop.id===task.id&&dnd.drop.pos==='after'}"
-           ng-style="{'border-left-color':getPrioColor(task.priority)}"
-           draggable="{{task.completed?'false':'true'}}"
-           task-dnd="task.id">
-        <div class="d-flex align-items-start gap-3">
-          <button class="btn-icon mt-1 flex-shrink-0" type="button"
-                  ng-click="toggleTask(task.id);$event.stopPropagation()">
-            <i class="bi fs-5" ng-class="task.completed?'bi-check-circle-fill':'bi-circle'"
-               style="color:{{getPrioColor(task.priority)}}"></i>
-          </button>
-          <div class="flex-grow-1 min-w-0" style="cursor:pointer;" ng-click="editTask(task)">
-            <div class="fw-medium d-flex align-items-center gap-1">
-              <i class="bi bi-flag-fill flex-shrink-0" style="font-size:.7rem;color:{{getPrioColor(task.priority)}}"></i>
-              <span ng-class="{'text-decoration-line-through text-muted':task.completed}">{{task.text}}</span>
-            </div>
-            <p class="text-pre mt-1 mb-0" style="font-size:.83rem;color:var(--muted);" ng-if="task.description">{{task.description}}</p>
-            <div class="mt-2" ng-if="task.steps&&task.steps.length">
-              <div class="d-flex align-items-center gap-2 mb-1" ng-repeat="s in task.steps track by s.id">
-                <button class="btn-icon p-0" type="button" ng-click="toggleListStep(task.id,s.id);$event.stopPropagation()">
-                  <i class="bi" ng-class="s.completed?'bi-check-circle-fill':'bi-circle'"
-                     style="font-size:.78rem;color:{{getPrioColor(task.priority)}}"></i>
-                </button>
-                <span style="font-size:.82rem;color:var(--muted);"
-                      ng-class="{'text-decoration-line-through opacity-50':s.completed}">{{s.text}}</span>
+      <!-- 無分組 -->
+      <div ng-if="groupBy==='無'">
+        <div class="task-item"
+             ng-repeat="task in _cur track by task.id"
+             ng-class="{done:task.completed,dragging:dnd.dragId===task.id,'drop-before':dnd.drop&&dnd.drop.id===task.id&&dnd.drop.pos==='before','drop-after':dnd.drop&&dnd.drop.id===task.id&&dnd.drop.pos==='after'}"
+             ng-style="{'border-left-color':getPrioColor(task.priority)}"
+             draggable="{{task.completed?'false':'true'}}"
+             task-dnd="task.id">
+          <div class="d-flex align-items-start gap-3">
+            <button class="btn-icon mt-1 flex-shrink-0" type="button"
+                    ng-click="toggleTask(task.id);$event.stopPropagation()">
+              <i class="bi fs-5" ng-class="task.completed?'bi-check-circle-fill':'bi-circle'"
+                 style="color:{{getPrioColor(task.priority)}}"></i>
+            </button>
+            <div class="flex-grow-1 min-w-0" style="cursor:pointer;" ng-click="editTask(task)">
+              <div class="fw-medium d-flex align-items-center gap-1">
+                <i class="bi bi-flag-fill flex-shrink-0" style="font-size:.7rem;color:{{getPrioColor(task.priority)}}"></i>
+                <span ng-class="{'text-decoration-line-through text-muted':task.completed}">{{task.text}}</span>
+              </div>
+              <p class="text-pre mt-1 mb-0" style="font-size:.83rem;color:var(--muted);" ng-if="task.description">{{task.description}}</p>
+              <div class="mt-2" ng-if="task.steps&&task.steps.length">
+                <div class="d-flex align-items-center gap-2 mb-1" ng-repeat="s in task.steps track by s.id">
+                  <button class="btn-icon p-0" type="button" ng-click="toggleListStep(task.id,s.id);$event.stopPropagation()">
+                    <i class="bi" ng-class="s.completed?'bi-check-circle-fill':'bi-circle'"
+                       style="font-size:.78rem;color:{{getPrioColor(task.priority)}}"></i>
+                  </button>
+                  <span style="font-size:.82rem;color:var(--muted);"
+                        ng-class="{'text-decoration-line-through opacity-50':s.completed}">{{s.text}}</span>
+                </div>
+              </div>
+              <div class="d-flex flex-wrap gap-3 mt-2 meta-row">
+                <span class="deadline-text" ng-if="task.deadline"><i class="bi bi-clock me-1"></i>{{formatDT(task.deadline)}}</span>
+                <span ng-if="task.location" style="color:#3182ce;"><i class="bi bi-geo-alt me-1"></i>{{task.location}}</span>
+                <span ng-if="task.tags&&task.tags.length"><i class="bi bi-tag me-1"></i>{{task.tags.join(', ')}}</span>
               </div>
             </div>
-            <div class="d-flex flex-wrap gap-3 mt-2 meta-row">
-              <span class="deadline-text" ng-if="task.deadline"><i class="bi bi-clock me-1"></i>{{formatDT(task.deadline)}}</span>
-              <span ng-if="task.location" style="color:#3182ce;"><i class="bi bi-geo-alt me-1"></i>{{task.location}}</span>
-              <span ng-if="task.tags&&task.tags.length"><i class="bi bi-tag me-1"></i>{{task.tags.join(', ')}}</span>
+            <div class="task-actions flex-shrink-0">
+              <button class="btn-icon" type="button" ng-click="deleteTask(task.id);$event.stopPropagation()" title="刪除">
+                <i class="bi bi-trash"></i>
+              </button>
             </div>
           </div>
-          <div class="task-actions flex-shrink-0">
-            <button class="btn-icon" type="button" ng-click="deleteTask(task.id);$event.stopPropagation()" title="刪除">
-              <i class="bi bi-trash"></i>
-            </button>
+        </div>
+      </div>
+      <!-- 有分組 -->
+      <div ng-if="groupBy!=='無'">
+        <div ng-repeat="grp in _curGroups track by grp.label">
+          <div class="group-header">{{grp.label}}</div>
+          <div class="task-item"
+               ng-repeat="task in grp.tasks track by task.id"
+               ng-class="{done:task.completed}"
+               ng-style="{'border-left-color':getPrioColor(task.priority)}">
+            <div class="d-flex align-items-start gap-3">
+              <button class="btn-icon mt-1 flex-shrink-0" type="button"
+                      ng-click="toggleTask(task.id);$event.stopPropagation()">
+                <i class="bi fs-5" ng-class="task.completed?'bi-check-circle-fill':'bi-circle'"
+                   style="color:{{getPrioColor(task.priority)}}"></i>
+              </button>
+              <div class="flex-grow-1 min-w-0" style="cursor:pointer;" ng-click="editTask(task)">
+                <div class="fw-medium d-flex align-items-center gap-1">
+                  <i class="bi bi-flag-fill flex-shrink-0" style="font-size:.7rem;color:{{getPrioColor(task.priority)}}"></i>
+                  <span ng-class="{'text-decoration-line-through text-muted':task.completed}">{{task.text}}</span>
+                </div>
+                <p class="text-pre mt-1 mb-0" style="font-size:.83rem;color:var(--muted);" ng-if="task.description">{{task.description}}</p>
+                <div class="mt-2" ng-if="task.steps&&task.steps.length">
+                  <div class="d-flex align-items-center gap-2 mb-1" ng-repeat="s in task.steps track by s.id">
+                    <button class="btn-icon p-0" type="button" ng-click="toggleListStep(task.id,s.id);$event.stopPropagation()">
+                      <i class="bi" ng-class="s.completed?'bi-check-circle-fill':'bi-circle'"
+                         style="font-size:.78rem;color:{{getPrioColor(task.priority)}}"></i>
+                    </button>
+                    <span style="font-size:.82rem;color:var(--muted);"
+                          ng-class="{'text-decoration-line-through opacity-50':s.completed}">{{s.text}}</span>
+                  </div>
+                </div>
+                <div class="d-flex flex-wrap gap-3 mt-2 meta-row">
+                  <span class="deadline-text" ng-if="task.deadline"><i class="bi bi-clock me-1"></i>{{formatDT(task.deadline)}}</span>
+                  <span ng-if="task.location" style="color:#3182ce;"><i class="bi bi-geo-alt me-1"></i>{{task.location}}</span>
+                  <span ng-if="task.tags&&task.tags.length"><i class="bi bi-tag me-1"></i>{{task.tags.join(', ')}}</span>
+                </div>
+              </div>
+              <div class="task-actions flex-shrink-0">
+                <button class="btn-icon" type="button" ng-click="deleteTask(task.id);$event.stopPropagation()" title="刪除">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- WEEK VIEW (週視圖) -->
+    <div class="mt-1" ng-if="viewMode==='week'">
+      <!-- 月份標題 + 導覽 -->
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="fw-semibold" style="font-size:.95rem;">{{weekViewMonthLabel()}}</span>
+        <div class="d-flex align-items-center gap-1">
+          <button class="btn btn-sm btn-outline-secondary px-2" ng-click="prevWeek()"><i class="bi bi-chevron-left"></i></button>
+          <button class="btn btn-sm btn-outline-secondary px-2" ng-click="weekGoToday()">今天</button>
+          <button class="btn btn-sm btn-outline-secondary px-2" ng-click="nextWeek()"><i class="bi bi-chevron-right"></i></button>
+        </div>
+      </div>
+      <!-- 7 天 Tab 列 -->
+      <div class="week-day-tabs">
+        <div class="week-day-tab"
+             ng-repeat="day in _weekDays track by day.date"
+             ng-class="{active: weekSelDate===day.date}"
+             ng-click="selectWeekDay(day.date)">
+          <span class="week-day-tab-label">{{day.label}}</span>
+          <span class="week-day-tab-num" ng-class="{'today-badge': day.isToday}">{{day.dayNum}}</span>
+        </div>
+      </div>
+      <!-- 選取日期的任務內容 -->
+      <div ng-repeat="day in _weekDays track by day.date" ng-if="weekSelDate===day.date">
+        <div class="week-date-header d-flex align-items-center gap-2">
+          <span class="fw-bold" style="font-size:1.1rem;cursor:pointer;"
+                ng-click="selectedDate=new Date(day.date+'T00:00:00');viewMode='list'"
+                title="切換到列表檢視">
+            {{day.monthNum}}月{{day.dayNum}}日 <i class="bi bi-box-arrow-up-right" style="font-size:.75rem;opacity:.5;"></i>
+          </span>
+          <span style="color:var(--muted);font-size:.85rem;" ng-if="day.isToday">今天 ・ 週{{day.label}}</span>
+          <span style="color:var(--muted);font-size:.85rem;" ng-if="!day.isToday">週{{day.label}}</span>
+        </div>
+        <div class="divider"></div>
+        <!-- 任務列表 -->
+        <div class="task-item"
+             ng-repeat="task in day.tasks track by task.id"
+             ng-class="{done:task.completed}"
+             ng-style="{'border-left-color':getPrioColor(task.priority)}"
+             ng-click="editTask(task)">
+          <div class="d-flex align-items-start gap-3">
+            <button class="btn-icon mt-1 flex-shrink-0" type="button"
+                    ng-click="toggleTask(task.id);$event.stopPropagation()">
+              <i class="bi fs-5" ng-class="task.completed?'bi-check-circle-fill':'bi-circle'"
+                 style="color:{{getPrioColor(task.priority)}}"></i>
+            </button>
+            <div class="flex-grow-1 min-w-0" style="cursor:pointer;">
+              <div class="fw-medium d-flex align-items-center gap-1">
+                <i class="bi bi-flag-fill flex-shrink-0" style="font-size:.7rem;color:{{getPrioColor(task.priority)}}"></i>
+                <span ng-class="{'text-decoration-line-through text-muted':task.completed}">{{task.text}}</span>
+              </div>
+              <p class="text-pre mt-1 mb-0" style="font-size:.83rem;color:var(--muted);" ng-if="task.description">{{task.description}}</p>
+              <div class="d-flex flex-wrap gap-3 mt-2 meta-row">
+                <span class="deadline-text" ng-if="task.deadline"><i class="bi bi-clock me-1"></i>{{formatDT(task.deadline)}}</span>
+                <span ng-if="task.tags&&task.tags.length"><i class="bi bi-tag me-1"></i>{{task.tags.join(', ')}}</span>
+              </div>
+            </div>
+            <div class="task-actions flex-shrink-0">
+              <button class="btn-icon" type="button" ng-click="deleteTask(task.id);$event.stopPropagation()" title="刪除">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- 無任務提示 -->
+        <div ng-if="!day.tasks.length" class="py-3" style="color:var(--muted);">
+          <i class="bi bi-check-all me-1" style="opacity:.35;"></i><small>{{t.noTasks}}</small>
+        </div>
+        <!-- 新增任務 -->
+        <button class="add-btn" ng-click="weekAddForDate(day.date)">
+          <i class="bi bi-plus-circle"></i> {{t.addTask}}
+        </button>
       </div>
     </div>
   </div>
@@ -1021,29 +1244,122 @@ angular.module('todoApp', [])
     isPrioOpen: false,          /* 優先級下拉 */
     isYearPickerOpen: false,    /* 年份選擇器 */
     stepEditId: null,           /* 正在編輯的步驟 id */
-    prioEditLevel: null         /* 正在編輯的優先級 level */
+    prioEditLevel: null,        /* 正在編輯的優先級 level */
+    prioFilterOpen: false       /* 布局面板優先級過濾下拉 */
   };
+
+  /* 布局面板狀態 — 用物件包裝，讓 ng-if 子 scope 修改時能穿透到 controller scope */
+  $scope.viewMode = 'list';
+  $scope.layoutPanelOpen = false;
+  $scope.groupBy = '無';
+  $scope.layout = { sortBy: '無', sortOrder: '升序', filterDate: '全部' };
+  $scope.filterPriorities = [];
+  $scope.weekOffset = 0;
+  $scope.weekSelDate = todayStr();
 
   /* Derived lists */
   $scope._cur = []; $scope._overdue = []; $scope._calCells = [];
+  $scope._curGroups = []; $scope._weekDays = [];
   $scope.pendingCount = 0;
 
   function getTasksForDate(ds) {
     return $scope.tasks.filter(function(t){ return t.date===ds; });
   }
 
+  /* 取得本週一（週一為一週起點） */
+  function getWeekStart(d) {
+    var day = d.getDay();
+    var diff = day === 0 ? -6 : 1 - day;
+    var mon = new Date(d);
+    mon.setDate(d.getDate() + diff);
+    mon.setHours(0, 0, 0, 0);
+    return mon;
+  }
+
   function rebuildLists() {
     var ds = fmtDate($scope.selectedDate);
-    $scope._cur = $scope.tasks
-      .filter(function(t){
-        if(t.isOverdue) return false;
-        if(t.startTime){
-          /* 有啟用時間：從啟用日起常駐顯示（直到 deadline 觸發 isOverdue） */
-          return ds >= t.startTime.substring(0,10);
-        }
-        return t.date===ds;
-      })
-      .sort(function(a,b){ return a.completed===b.completed?0:a.completed?1:-1; });
+    var today = todayStr();
+
+    /* 日期過濾：判斷任務是否符合 filterDate 設定 */
+    var filterDate = $scope.layout.filterDate;
+    function passDateFilter(t) {
+      if (filterDate === '全部') return true;
+      var tds = t.startTime ? t.startTime.substring(0,10) : t.date;
+      if (filterDate === '今天') return tds === today;
+      if (filterDate === '這週') {
+        var ws = fmtDate(getWeekStart(new Date()));
+        var we = fmtDate(new Date(getWeekStart(new Date()).getTime() + 6*86400000));
+        return tds >= ws && tds <= we;
+      }
+      if (filterDate === '近2週') {
+        var twoWk = fmtDate(new Date(new Date().getTime() + 13*86400000));
+        return tds >= today && tds <= twoWk;
+      }
+      if (filterDate === '這個月') {
+        var mStart = today.substring(0,7) + '-01';
+        var mEnd = fmtDate(new Date(new Date().getFullYear(), new Date().getMonth()+1, 0));
+        return tds >= mStart && tds <= mEnd;
+      }
+      return true;
+    }
+
+    /* 優先級過濾 */
+    function passPrioFilter(t) {
+      if ($scope.filterPriorities.length === 0) return true;
+      return $scope.filterPriorities.indexOf(Number(t.priority)) >= 0;
+    }
+
+    /* 排序 */
+    function applySort(arr) {
+      var s = $scope.layout.sortBy;
+      var asc = $scope.layout.sortOrder !== '降序';
+      return arr.sort(function(a,b) {
+        if (s === '無') return a.completed === b.completed ? 0 : a.completed ? 1 : -1;
+        var r;
+        if (s === '名稱') { r = (a.text||'').localeCompare(b.text||''); }
+        else if (s === '日期') { r = (a.date||'') < (b.date||'') ? -1 : (a.date||'') > (b.date||'') ? 1 : 0; }
+        else if (s === '啟用時間') { var av=a.startTime||a.date||'', bv=b.startTime||b.date||''; r = av<bv?-1:av>bv?1:0; }
+        else if (s === '截止期限') { var ad=a.deadline||'9999', bd=b.deadline||'9999'; r = ad<bd?-1:ad>bd?1:0; }
+        else if (s === '優先級') { r = (Number(a.priority)||99) - (Number(b.priority)||99); }
+        else if (s === '標籤') { var at=(a.tags&&a.tags[0])||'', bt=(b.tags&&b.tags[0])||''; r = at.localeCompare(bt); }
+        else { r = 0; }
+        return asc ? r : -r;
+      });
+    }
+
+    /* _cur：基礎日期篩選 + 過濾 + 排序 */
+    var baseTasks = $scope.tasks.filter(function(t) {
+      if (t.isOverdue) return false;
+      var passBase;
+      if (filterDate === '全部') {
+        /* 維持原有邏輯：顯示選取日期的任務 */
+        if (t.startTime) passBase = ds >= t.startTime.substring(0,10);
+        else passBase = t.date === ds;
+      } else {
+        passBase = passDateFilter(t);
+      }
+      return passBase && passPrioFilter(t);
+    });
+    $scope._cur = applySort(baseTasks.slice());
+
+    /* _curGroups：依 groupBy 分組 */
+    if ($scope.groupBy !== '無') {
+      var groupMap = {}, groupOrder = [];
+      $scope._cur.forEach(function(task) {
+        var g = $scope.groupBy, key;
+        if (g === '日期') key = task.date || '(無日期)';
+        else if (g === '啟用時間') key = task.startTime ? task.startTime.substring(0,10) : '(無啟用時間)';
+        else if (g === '截止期限') key = task.deadline ? task.deadline.substring(0,10) : '(無截止期限)';
+        else if (g === '優先級') key = $scope.getPrioLabel(task.priority) || '(無優先級)';
+        else if (g === '標籤') key = (task.tags&&task.tags.length) ? task.tags[0] : '(無標籤)';
+        else key = '其他';
+        if (!groupMap[key]) { groupMap[key]=[]; groupOrder.push(key); }
+        groupMap[key].push(task);
+      });
+      $scope._curGroups = groupOrder.map(function(k){ return {label:k, tasks:groupMap[k]}; });
+    } else {
+      $scope._curGroups = [];
+    }
 
     $scope._overdue = $scope.tasks
       .filter(function(t){ return t.isOverdue&&!t.completed; })
@@ -1054,7 +1370,6 @@ angular.module('todoApp', [])
       });
 
     $scope.pendingCount = $scope.tasks.filter(function(t){
-      var today=todayStr();
       if(t.startTime) return t.startTime.substring(0,10)<=today&&!t.completed&&!t.isOverdue;
       return t.date===today&&!t.completed&&!t.isOverdue;
     }).length;
@@ -1064,7 +1379,6 @@ angular.module('todoApp', [])
     var firstDay=new Date(y,m,1).getDay();
     var daysInMonth=new Date(y,m+1,0).getDate();
     var prevDays=new Date(y,m,0).getDate();
-    var today=todayStr();
     var cells=[];
     for(var i=0;i<firstDay;i++){
       var d=prevDays-firstDay+1+i;
@@ -1082,12 +1396,58 @@ angular.module('todoApp', [])
       cells.push({day:d3,inMonth:false,isToday:false,date:ds4,tasks:getTasksForDate(ds4)});
     }
     $scope._calCells = cells;
+
+    /* 週視圖資料 */
+    var weekBase = new Date();
+    weekBase.setDate(weekBase.getDate() + $scope.weekOffset * 7);
+    var weekMon = getWeekStart(weekBase);
+    var weekLabels = ['一','二','三','四','五','六','日'];
+    var weekDaysArr = [];
+    for (var wi = 0; wi < 7; wi++) {
+      var wd = new Date(weekMon.getTime() + wi * 86400000);
+      var wds = fmtDate(wd);
+      var wTasks = $scope.tasks.filter(function(t) {
+        if (t.isOverdue) return false;
+        var passes;
+        if (t.startTime) {
+          /* 有啟用時間：顯示在啟用日~截止日範圍內的每一天 */
+          passes = wds >= t.startTime.substring(0,10) &&
+                   (!t.deadline || wds <= t.deadline.substring(0,10));
+        } else {
+          passes = t.date === wds;
+        }
+        return passes && passPrioFilter(t);
+      });
+      weekDaysArr.push({
+        date: wds,
+        label: weekLabels[wi],
+        dayNum: wd.getDate(),
+        monthNum: wd.getMonth() + 1,
+        isToday: wds === today,
+        tasks: applySort(wTasks)
+      });
+    }
+    $scope._weekDays = weekDaysArr;
+    /* 如果 weekSelDate 不在本週範圍內，自動選今天（或週一） */
+    var validDates = weekDaysArr.map(function(d){ return d.date; });
+    if (validDates.indexOf($scope.weekSelDate) < 0) {
+      var todayInWeek = weekDaysArr.find(function(d){ return d.isToday; });
+      $scope.weekSelDate = todayInWeek ? todayInWeek.date : weekDaysArr[0].date;
+    }
   }
 
   $scope.$watch('tasks', rebuildLists, true);
   $scope.$watch(function(){
     return fmtDate($scope.selectedDate)+'|'+$scope.calMonth.getFullYear()+'-'+$scope.calMonth.getMonth();
   }, rebuildLists);
+  $scope.$watch('groupBy', rebuildLists);
+  $scope.$watch('weekOffset', rebuildLists);
+  $scope.$watch('layout.sortBy', rebuildLists);
+  $scope.$watch('layout.sortOrder', rebuildLists);
+  $scope.$watch('layout.filterDate', rebuildLists);
+  $scope.$watchCollection('filterPriorities', rebuildLists);
+
+  $scope.selectWeekDay = function(dateStr) { $scope.weekSelDate = dateStr; };
 
   /* Priority helpers */
   $scope.getPrioColor = function(level) {
@@ -1151,7 +1511,9 @@ angular.module('todoApp', [])
   };
 
   /* Form */
-  var emptyForm=function(){return {text:'',description:'',priority:'1',startTime:null,deadline:null,reminderType:'15',customReminderTime:'',tags:[],location:'',steps:[]};};
+  var emptyForm=function(){
+    return {text:'',description:'',priority:'1',startTime:new Date(),deadline:null,reminderType:'15',customReminderTime:'',tags:[],location:'',steps:[]};
+  };
   $scope.form=emptyForm();
 
   $scope.startAdd=function(){ $scope.form=emptyForm(); $scope.editId=null; $scope.isAdding=true; };
@@ -1279,6 +1641,46 @@ angular.module('todoApp', [])
   $scope.prevMonth=function(){ $scope.calMonth=new Date($scope.calMonth.getFullYear(),$scope.calMonth.getMonth()-1,1); $scope.calYear=$scope.calMonth.getFullYear(); buildCalYearList(); };
   $scope.nextMonth=function(){ $scope.calMonth=new Date($scope.calMonth.getFullYear(),$scope.calMonth.getMonth()+1,1); $scope.calYear=$scope.calMonth.getFullYear(); buildCalYearList(); };
   $scope.goToday=function(){ $scope.calMonth=new Date(); $scope.calYear=new Date().getFullYear(); buildCalYearList(); };
+
+  /* 週視圖導覽 */
+  $scope.prevWeek = function() { $scope.weekOffset--; };
+  $scope.nextWeek = function() { $scope.weekOffset++; };
+  $scope.weekGoToday = function() { $scope.weekOffset = 0; $scope.weekSelDate = todayStr(); };
+  $scope.weekViewMonthLabel = function() {
+    if (!$scope._weekDays || !$scope._weekDays.length) return '';
+    var first = $scope._weekDays[0], last = $scope._weekDays[6];
+    var fy = parseInt(first.date.substring(0,4)), fm = parseInt(first.date.substring(5,7));
+    var ly = parseInt(last.date.substring(0,4)), lm = parseInt(last.date.substring(5,7));
+    if (fy === ly && fm === lm) return fy + '年' + fm + '月';
+    if (fy === ly) return fy + '年 ' + fm + '月 – ' + lm + '月';
+    return fy + '年' + fm + '月 – ' + ly + '年' + lm + '月';
+  };
+  $scope.weekAddForDate = function(dateStr) {
+    $scope.form = emptyForm();
+    $scope.form.date = dateStr;
+    /* startTime 日期部分對齊選取的那天，時間保留當下 */
+    var now = $scope.form.startTime instanceof Date ? $scope.form.startTime : new Date();
+    var d = new Date(dateStr + 'T' + pad(now.getHours()) + ':' + pad(now.getMinutes()));
+    $scope.form.startTime = d;
+    $scope.editId = null;
+    $scope.isAdding = true;
+    setTimeout(function(){ var el=document.getElementById('taskInput'); if(el) el.focus(); }, 100);
+  };
+  $scope.getWeekRangeLabel = function() {
+    if (!$scope._weekDays || !$scope._weekDays.length) return '';
+    var first = $scope._weekDays[0], last = $scope._weekDays[6];
+    if (first.monthNum === last.monthNum) {
+      return first.monthNum + '月 ' + first.dayNum + ' – ' + last.dayNum + ' 日';
+    }
+    return first.monthNum + '月' + first.dayNum + '日 – ' + last.monthNum + '月' + last.dayNum + '日';
+  };
+
+  /* 優先級複選過濾 */
+  $scope.togglePriorityFilter = function(level) {
+    var idx = $scope.filterPriorities.indexOf(level);
+    if (idx >= 0) $scope.filterPriorities.splice(idx, 1);
+    else $scope.filterPriorities.push(level);
+  };
   $scope.selectDay=function(d){ $scope.selectedDate=new Date($scope.calMonth.getFullYear(),$scope.calMonth.getMonth(),d); };
   $scope.isSelDay=function(d){ return fmtDate(new Date($scope.calMonth.getFullYear(),$scope.calMonth.getMonth(),d))===fmtDate($scope.selectedDate); };
   $scope.dayHasTasks=function(d){
