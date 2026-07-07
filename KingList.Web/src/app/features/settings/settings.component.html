@@ -1,0 +1,47 @@
+﻿<div class="card-section" style="max-width:600px">
+  <h5 class="fw-bold mb-4">{{ "settings" | translate }}</h5>
+
+  <!-- Language -->
+  <div class="mb-3">
+    <label class="form-label">{{ "language" | translate }}</label>
+    <select class="c-input" [ngModel]="settings().language" (ngModelChange)="changeLanguage($event)">
+      @for (l of languages; track l.value) {
+        <option [value]="l.value">{{ l.label }}</option>
+      }
+    </select>
+  </div>
+
+  <!-- Theme -->
+  <div class="mb-3">
+    <label class="form-label">{{ "theme" | translate }}</label>
+    <div class="d-flex gap-2">
+      @for (t of themes; track t) {
+        <button class="btn btn-sm" [class.btn-primary]="settings().theme === t"
+                [class.btn-outline-secondary]="settings().theme !== t"
+                (click)="changeTheme(t)">{{ t }}</button>
+      }
+    </div>
+  </div>
+
+  <!-- Accent Color -->
+  <div class="mb-3">
+    <label class="form-label">{{ "accentColor" | translate }}</label>
+    <div class="d-flex align-items-center gap-2">
+      <input type="color" class="form-control form-control-color"
+             [ngModel]="settings().accentColor" (ngModelChange)="changeAccentColor($event)">
+      <span class="text-muted small">{{ settings().accentColor }}</span>
+    </div>
+  </div>
+
+  <!-- User info -->
+  <hr>
+  <div class="d-flex align-items-center gap-3">
+    <div>
+      <div class="fw-medium">{{ auth.currentUser()?.displayName }}</div>
+      <small class="text-muted">{{ auth.currentUser()?.email }}</small>
+    </div>
+    <button class="btn btn-sm btn-outline-danger ms-auto" (click)="auth.signOut()">
+      {{ "logout" | translate }}
+    </button>
+  </div>
+</div>

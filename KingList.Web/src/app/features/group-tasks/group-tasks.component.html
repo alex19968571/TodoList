@@ -1,0 +1,43 @@
+﻿@if (!activeGroup()) {
+  <div class="card-section text-center py-5">
+    <h5 class="mb-4">{{ "noGroup" | translate }}</h5>
+    <div class="d-flex flex-column gap-3" style="max-width:280px;margin:auto">
+      <input class="c-input" [(ngModel)]="newGroupName" [placeholder]="'groupName' | translate">
+      <button class="btn btn-primary" (click)="createGroup()">{{ "createGroup" | translate }}</button>
+      <hr>
+      <input class="c-input" [(ngModel)]="joinCode" [placeholder]="'inviteCode' | translate">
+      @if (error) { <small class="text-danger">{{ error }}</small> }
+      <button class="btn btn-outline-primary" (click)="joinGroup()">{{ "joinGroup" | translate }}</button>
+    </div>
+  </div>
+} @else {
+  <div class="card-section">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h5 class="mb-0 fw-bold">{{ activeGroup()!.name }}</h5>
+      <div class="d-flex gap-2">
+        <span class="badge bg-secondary">{{ "inviteCode" | translate }}: {{ activeGroup()!.inviteCode }}</span>
+        <button class="btn btn-sm btn-outline-danger" (click)="leaveGroup()">{{ "leaveGroup" | translate }}</button>
+      </div>
+    </div>
+
+    <!-- Add task -->
+    <div class="d-flex gap-2 mb-3">
+      <input class="c-input flex-grow-1" [(ngModel)]="newTaskText"
+             [placeholder]="'addGroupTask' | translate" (keydown.enter)="addTask()">
+      <button class="btn btn-primary" (click)="addTask()">{{ "add" | translate }}</button>
+    </div>
+
+    <!-- Task list -->
+    @for (task of groupTasks(); track task.id) {
+      <div class="task-item">
+        <span>{{ task.text }}</span>
+        @if (task.updatedBy) {
+          <small class="d-block text-muted">{{ task.updatedBy }}</small>
+        }
+      </div>
+    }
+    @if (!groupTasks().length) {
+      <p class="text-muted text-center py-3">{{ "noTasks" | translate }}</p>
+    }
+  </div>
+}

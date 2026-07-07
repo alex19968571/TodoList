@@ -104,5 +104,7 @@
   "apply": "Apply",
   "changeAvatar": "Change Avatar",
   "selectPhoto": "Select Photo",
-  "removeAvatar": "Remove Avatar"
+  "removeAvatar": "Remove Avatar",
+  "loginSubtitle": "Your personal task manager",
+  "loginGoogle": "Sign in with Google"
 }

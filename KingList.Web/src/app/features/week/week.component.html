@@ -1,0 +1,49 @@
+﻿<div class="card-section">
+  <!-- Header -->
+  <div class="d-flex align-items-center justify-content-between mb-2">
+    <span class="fw-semibold">{{ monthLabel() }}</span>
+    <div class="d-flex gap-1">
+      <button class="btn btn-sm btn-outline-secondary" (click)="prevWeek()"><i class="bi bi-chevron-left"></i></button>
+      <button class="btn btn-sm btn-outline-secondary" (click)="goToday()">{{ 'filterToday' | translate }}</button>
+      <button class="btn btn-sm btn-outline-secondary" (click)="nextWeek()"><i class="bi bi-chevron-right"></i></button>
+    </div>
+  </div>
+
+  <!-- Day tabs -->
+  <div class="d-flex gap-1 mb-3">
+    @for (day of weekDays(); track day.date) {
+      <button class="btn flex-fill py-2"
+              [class.btn-primary]="selDate() === day.date"
+              [class.btn-outline-secondary]="selDate() !== day.date"
+              (click)="select(day.date)">
+        <div class="small">{{ day.label }}</div>
+        <div class="fw-bold" [class.text-warning]="day.isToday">{{ day.dayNum }}</div>
+      </button>
+    }
+  </div>
+
+  <!-- Selected day header -->
+  @for (day of weekDays(); track day.date) {
+    @if (selDate() === day.date) {
+      <div class="mb-2">
+        <span class="fw-bold">{{ formatDate(day) }}</span>
+        <span class="text-muted ms-2 small">
+          @if (day.isToday) { {{ 'filterToday' | translate }} ・ } {{ day.weekLabel }}
+        </span>
+      </div>
+    }
+  }
+
+  <!-- Tasks for selected day -->
+  @for (task of selDayTasks(); track task.id) {
+    <div class="task-item">
+      <span>{{ task.text }}</span>
+      @if (task.deadline) {
+        <small class="d-block text-muted">{{ 'deadlinePrefix' | translate }}: {{ task.deadline }}</small>
+      }
+    </div>
+  }
+  @if (!selDayTasks().length) {
+    <p class="text-muted text-center py-3">{{ 'noTasks' | translate }}</p>
+  }
+</div>

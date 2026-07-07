@@ -104,5 +104,7 @@
   "apply": "套用",
   "changeAvatar": "更換頭貼",
   "selectPhoto": "從裝置選取照片",
-  "removeAvatar": "移除頭貼"
+  "removeAvatar": "移除頭貼",
+  "loginSubtitle": "你的個人任務管理工具",
+  "loginGoogle": "使用 Google 登入"
 }

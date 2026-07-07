@@ -1,0 +1,44 @@
+﻿<div class="d-flex">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="brand" (click)="goHome()" title="KingList">
+      <img src="logo.png" class="brand-logo" alt="KingList" (error)="$any($event.target).style.display='none'">
+      <span class="brand-name">KingList</span>
+    </div>
+
+    <a routerLink="/today" routerLinkActive="active" class="nav-btn">
+      <i class="bi bi-sun-fill fs-5"></i>
+      <span>{{ 'today' | translate }}</span>
+    </a>
+
+    <a routerLink="/week" routerLinkActive="active" class="nav-btn">
+      <i class="bi bi-calendar-week fs-5"></i>
+      <span>{{ 'weekView' | translate }}</span>
+    </a>
+
+    <a routerLink="/calendar" routerLinkActive="active" class="nav-btn">
+      <i class="bi bi-calendar3 fs-5"></i>
+      <span>{{ 'calendar' | translate }}</span>
+    </a>
+
+    <a routerLink="/groups" routerLinkActive="active" class="nav-btn">
+      <i class="bi bi-people-fill fs-5"></i>
+      <span>{{ 'groupNav' | translate }}</span>
+    </a>
+
+    <div style="flex:1"></div>
+
+    <a routerLink="/settings" routerLinkActive="active" class="nav-btn">
+      <i class="bi bi-gear-fill fs-5"></i>
+    </a>
+
+    <button class="nav-btn" (click)="logout()" [title]="'logout' | translate">
+      <i class="bi bi-box-arrow-right fs-5"></i>
+    </button>
+  </nav>
+
+  <!-- Main -->
+  <main class="main-content flex-grow-1">
+    <router-outlet />
+  </main>
+</div>

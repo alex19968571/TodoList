@@ -1,0 +1,100 @@
+﻿<div class="card-section">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0 fw-bold">{{ 'today' | translate }}</h5>
+    <button class="btn btn-sm btn-outline-secondary" (click)="trashVisible.set(!trashVisible())">
+      <i class="bi bi-trash"></i>
+    </button>
+  </div>
+
+  <!-- Trash dropdown -->
+  @if (trashVisible()) {
+    <div class="mb-3 p-3" style="background:var(--bg);border-radius:8px;border:1px solid var(--border);">
+      <div class="fw-semibold mb-2">{{ 'recentDeleted' | translate }}</div>
+      @if (!trash().length) {
+        <small class="text-muted">{{ 'trashEmpty' | translate }}</small>
+      }
+      @for (item of trash(); track item.id) {
+        <div class="d-flex align-items-center justify-content-between py-1">
+          <span style="font-size:.85rem;">{{ item.text }}</span>
+          <div class="d-flex gap-1">
+            <button class="btn btn-xs btn-outline-success" (click)="restoreTask(item.id)">{{ 'restore' | translate }}</button>
+            <button class="btn btn-xs btn-outline-danger" (click)="permanentDelete(item.id)">{{ 'deletePermanent' | translate }}</button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Task form -->
+  @if (isAdding) {
+    <div class="card-section mb-3">
+      <input class="c-input mb-2" [(ngModel)]="form.text" [placeholder]="'taskNamePlaceholder' | translate" (keydown.enter)="saveTask()">
+      <textarea class="c-input mb-2" rows="2" [(ngModel)]="form.description" [placeholder]="'description' | translate"></textarea>
+      <div class="row g-2 mb-2">
+        <div class="col-6">
+          <label class="form-label small">{{ 'startTime' | translate }}</label>
+          <input type="datetime-local" class="c-input" [(ngModel)]="form.startTime">
+        </div>
+        <div class="col-6">
+          <label class="form-label small">{{ 'deadline' | translate }}</label>
+          <input type="datetime-local" class="c-input" [(ngModel)]="form.deadline">
+        </div>
+      </div>
+      <div class="d-flex gap-2 justify-content-end">
+        <button class="btn btn-sm btn-light" (click)="cancelForm()">{{ 'cancel' | translate }}</button>
+        <button class="btn btn-sm btn-primary" (click)="saveTask()">
+          {{ (editId ? 'updateTask' : 'saveTask') | translate }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Task list -->
+  @for (task of todayTasks(); track task.id) {
+    <div class="task-item" [class.done]="task.completed"
+         [style.border-left-color]="getPrioColor(task.priority)"
+         (click)="editTask(task)">
+      <div class="d-flex align-items-start gap-3">
+        <button class="btn-icon mt-1" type="button" (click)="toggleTask(task.id); $event.stopPropagation()">
+          <i class="bi fs-5" [class]="task.completed ? 'bi-check-circle-fill' : 'bi-circle'"
+             [style.color]="getPrioColor(task.priority)"></i>
+        </button>
+        <div class="flex-grow-1">
+          <span [class.text-decoration-line-through]="task.completed" [class.text-muted]="task.completed">
+            {{ task.text }}
+          </span>
+          @if (task.deadline) {
+            <small class="d-block text-muted">{{ 'deadlinePrefix' | translate }}: {{ task.deadline }}</small>
+          }
+        </div>
+        <button class="btn-icon" type="button" (click)="deleteTask(task.id); $event.stopPropagation()">
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (!todayTasks().length && !isAdding) {
+    <p class="text-muted text-center py-3">{{ 'noTasks' | translate }}</p>
+  }
+
+  <button class="add-btn mt-2" (click)="startAdd()">
+    <i class="bi bi-plus-circle"></i> {{ 'addTask' | translate }}
+  </button>
+</div>
+
+<!-- Overdue -->
+@if (overdue().length) {
+  <div class="card-section mt-3">
+    <h6 class="fw-bold mb-3" style="color:var(--accent)">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ 'overdue' | translate }}
+    </h6>
+    @for (task of overdue(); track task.id) {
+      <div class="task-item" [style.border-left-color]="getPrioColor(task.priority)">
+        <span>{{ task.text }}</span>
+        <small class="d-block text-muted">{{ 'deadlinePrefix' | translate }}: {{ task.deadline }}</small>
+      </div>
+    }
+  </div>
+}
