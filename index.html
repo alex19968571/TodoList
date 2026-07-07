@@ -1982,10 +1982,14 @@ angular.module('todoApp', [])
   $scope.groupUi = { newGroupName:'', joinCode:'', error:'', loading:false };
 
   /* Settings — 從 localStorage 立即載入（避免畫面閃爍），登入後再由 Firestore 覆蓋 */
+  function detectSysLang() {
+    var l = (navigator.language || navigator.userLanguage || '').toLowerCase();
+    return l.startsWith('zh') ? 'zh-TW' : 'en-US';
+  }
   var savedS = {};
   try { savedS = JSON.parse(localStorage.getItem('tfp_settings')||'{}'); } catch(e){}
   $scope.settings = angular.extend({
-    tags:['工作','個人','緊急','專案'], language:'zh-TW', theme:'light', fontSize:'md',
+    tags:['工作','個人','緊急','專案'], language: detectSysLang(), theme:'light', fontSize:'md',
     accentColor:'#e53e3e',
     priorities:[
       {level:1,color:'#dc2626',label:'level 1'},{level:2,color:'#d97706',label:'level 2'},
