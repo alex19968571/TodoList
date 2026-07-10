@@ -110,6 +110,9 @@
     .task-item.dragging{opacity:.3;border:2px dashed var(--accent)!important;}
     .task-item.drop-before{border-top:2.5px solid var(--accent)!important;}
     .task-item.drop-after{border-bottom:2.5px solid var(--accent)!important;}
+    /* 行動裝置：禁止觸碰時觸發文字選取 */
+    .task-item[draggable]{-webkit-user-select:none;user-select:none;}
+    [group-task-dnd]{-webkit-user-select:none;user-select:none;}
     .task-actions{opacity:0;transition:opacity .15s;}
     .task-item:hover .task-actions{opacity:1;}
 
@@ -632,7 +635,7 @@
               <div class="d-flex gap-2 align-items-center mb-2">
                 <label class="layout-label">{{t.sort}}</label>
                 <select class="form-select form-select-sm" ng-model="layout.sortBy">
-                  <option value="無">{{t.sortNone}}</option><option value="名稱">{{t.sortByName}}</option><option value="日期">{{t.sortByDate}}</option><option value="啟用時間">{{t.sortByStart}}</option><option value="截止期限">{{t.deadline}}</option><option value="優先級">{{t.sortByPrio}}</option><option value="標籤">{{t.sortByTag}}</option>
+                  <option value="無">{{t.sortNone}}</option><option value="名稱">{{t.sortByName}}</option><option value="日期">{{t.sortByDate}}</option><option value="標籤">{{t.sortByTag}}</option><option value="優先級">{{t.sortByPrio}}</option><option value="啟用時間">{{t.sortByStart}}</option><option value="截止期限">{{t.deadline}}</option>
                 </select>
               </div>
               <div class="d-flex gap-2 align-items-center">
@@ -651,7 +654,7 @@
                   <input class="form-check-input" type="checkbox" id="hc-today" ng-model="layout.hideCompleted">
                 </div>
               </div>
-              <div class="d-flex gap-2 align-items-center mb-2">
+              <div class="d-flex gap-2 align-items-center mb-2" ng-if="viewMode!=='week'">
                 <label class="layout-label">{{t.showAll}}</label>
                 <div class="form-check form-switch mb-0">
                   <input class="form-check-input" type="checkbox" id="sa-today" ng-model="layout.showAll">
@@ -894,12 +897,17 @@
               <p class="text-pre mt-1 mb-0" style="font-size:.83rem;color:var(--muted);" ng-if="task.description">{{task.description}}</p>
               <div class="mt-2" ng-if="task.steps&&task.steps.length">
                 <div class="d-flex align-items-center gap-2 mb-1" ng-repeat="s in task.steps track by s.id">
-                  <button class="btn-icon p-0" type="button" ng-click="toggleListStep(task.id,s.id);$event.stopPropagation()">
+                  <button class="btn-icon p-0 flex-shrink-0" type="button" ng-click="toggleListStep(task.id,s.id);$event.stopPropagation()">
                     <i class="bi" ng-class="s.completed?'bi-check-circle-fill':'bi-circle'"
                        style="font-size:.78rem;color:{{getPrioColor(task.priority)}}"></i>
                   </button>
-                  <span style="font-size:.82rem;color:var(--muted);"
-                        ng-class="{'text-decoration-line-through opacity-50':s.completed}">{{s.text}}</span>
+                  <div style="flex:1;min-width:0;">
+                    <span style="font-size:.82rem;color:var(--muted);"
+                          ng-class="{'text-decoration-line-through opacity-50':s.completed}">{{s.text}}</span>
+                    <div ng-if="s.completed&&s.completedAt" style="font-size:.72rem;color:var(--muted);">
+                      <i class="bi bi-check2-circle me-1"></i>{{t.completedAt||'完成於'}} {{formatDT(s.completedAt)}}
+                    </div>
+                  </div>
                 </div>
               </div>
               <div class="d-flex flex-wrap gap-3 mt-2 meta-row">
@@ -941,12 +949,17 @@
                 <p class="text-pre mt-1 mb-0" style="font-size:.83rem;color:var(--muted);" ng-if="task.description">{{task.description}}</p>
                 <div class="mt-2" ng-if="task.steps&&task.steps.length">
                   <div class="d-flex align-items-center gap-2 mb-1" ng-repeat="s in task.steps track by s.id">
-                    <button class="btn-icon p-0" type="button" ng-click="toggleListStep(task.id,s.id);$event.stopPropagation()">
+                    <button class="btn-icon p-0 flex-shrink-0" type="button" ng-click="toggleListStep(task.id,s.id);$event.stopPropagation()">
                       <i class="bi" ng-class="s.completed?'bi-check-circle-fill':'bi-circle'"
                          style="font-size:.78rem;color:{{getPrioColor(task.priority)}}"></i>
                     </button>
-                    <span style="font-size:.82rem;color:var(--muted);"
-                          ng-class="{'text-decoration-line-through opacity-50':s.completed}">{{s.text}}</span>
+                    <div style="flex:1;min-width:0;">
+                      <span style="font-size:.82rem;color:var(--muted);"
+                            ng-class="{'text-decoration-line-through opacity-50':s.completed}">{{s.text}}</span>
+                      <div ng-if="s.completed&&s.completedAt" style="font-size:.72rem;color:var(--muted);">
+                        <i class="bi bi-check2-circle me-1"></i>{{t.completedAt||'完成於'}} {{formatDT(s.completedAt)}}
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div class="d-flex flex-wrap gap-3 mt-2 meta-row">
@@ -1020,6 +1033,21 @@
                 <span ng-class="{'text-decoration-line-through text-muted':task.completed}">{{task.text}}</span>
               </div>
               <p class="text-pre mt-1 mb-0" style="font-size:.83rem;color:var(--muted);" ng-if="task.description">{{task.description}}</p>
+              <div class="mt-2" ng-if="task.steps&&task.steps.length">
+                <div class="d-flex align-items-center gap-2 mb-1" ng-repeat="s in task.steps track by s.id">
+                  <button class="btn-icon p-0 flex-shrink-0" type="button" ng-click="toggleListStep(task.id,s.id);$event.stopPropagation()">
+                    <i class="bi" ng-class="s.completed?'bi-check-circle-fill':'bi-circle'"
+                       style="font-size:.78rem;color:{{getPrioColor(task.priority)}}"></i>
+                  </button>
+                  <div style="flex:1;min-width:0;">
+                    <span style="font-size:.82rem;color:var(--muted);"
+                          ng-class="{'text-decoration-line-through opacity-50':s.completed}">{{s.text}}</span>
+                    <div ng-if="s.completed&&s.completedAt" style="font-size:.72rem;color:var(--muted);">
+                      <i class="bi bi-check2-circle me-1"></i>{{t.completedAt||'完成於'}} {{formatDT(s.completedAt)}}
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div class="d-flex flex-wrap gap-3 mt-2 meta-row">
                 <span class="deadline-text" ng-if="task.deadline"><i class="bi bi-clock me-1"></i>{{formatDT(task.deadline)}}</span>
                 <span ng-if="task.tags&&task.tags.length"><i class="bi bi-tag me-1"></i>{{task.tags.join(', ')}}</span>
@@ -1437,11 +1465,34 @@
                 </button>
                 <div class="p-dropdown-menu" ng-if="ui.isGrpPrioOpen">
                   <div class="p-dropdown-item" ng-repeat="p in settings.priorities track by p.level"
-                       ng-click="groupForm.priority=''+p.level; ui.isGrpPrioOpen=false">
+                       ng-click="grpPrioItemClick(p.level)">
                     <i class="bi bi-flag-fill" style="color:{{p.color}};flex-shrink:0;"></i>
-                    <span class="flex-grow-1">{{p.label}}</span>
-                    <i class="bi bi-check fw-bold" style="color:var(--accent);"
-                       ng-if="groupForm.priority==''+p.level"></i>
+                    <span class="flex-grow-1" ng-if="ui.grpPrioEditLevel!==p.level">{{p.label}}</span>
+                    <input type="text" class="prio-edit-name" ng-model="p.label"
+                           ng-if="ui.grpPrioEditLevel===p.level"
+                           ng-click="$event.stopPropagation()" placeholder="等級名稱">
+                    <input type="color" class="prio-edit-color" ng-model="p.color"
+                           ng-if="ui.grpPrioEditLevel===p.level"
+                           ng-click="$event.stopPropagation()" title="修改顏色">
+                    <button class="btn-icon flex-shrink-0" ng-if="ui.grpPrioEditLevel!==p.level"
+                            ng-click="ui.grpPrioEditLevel=p.level;$event.stopPropagation()" title="編輯名稱與顏色">
+                      <i class="bi bi-pencil" style="font-size:.72rem;"></i>
+                    </button>
+                    <button class="btn-icon flex-shrink-0" ng-if="ui.grpPrioEditLevel===p.level"
+                            ng-click="ui.grpPrioEditLevel=null;$event.stopPropagation()" title="完成">
+                      <i class="bi bi-check-lg" style="font-size:.72rem;color:var(--accent);"></i>
+                    </button>
+                    <button class="btn-icon flex-shrink-0"
+                            ng-if="ui.grpPrioEditLevel===p.level&&settings.priorities.length>1"
+                            ng-click="removePriority(p.level);$event.stopPropagation()" title="刪除此等級">
+                      <i class="bi bi-trash" style="font-size:.72rem;color:#e53e3e;"></i>
+                    </button>
+                    <i class="bi bi-check fw-bold flex-shrink-0" style="color:var(--accent);"
+                       ng-if="groupForm.priority==''+p.level&&ui.grpPrioEditLevel!==p.level"></i>
+                  </div>
+                  <div class="p-dropdown-item border-top" style="color:var(--accent);"
+                       ng-click="addGrpPriorityFromMenu();$event.stopPropagation()">
+                    <i class="bi bi-plus"></i><span>{{t.addLevel}}</span>
                   </div>
                 </div>
               </div>
@@ -1535,8 +1586,10 @@
         </div>
         <div class="task-item"
              ng-repeat="task in _groupCur track by task.id"
-             ng-class="{done:task.completed}"
-             ng-style="{'border-left-color':getPrioColor(task.priority)}">
+             ng-class="{done:task.completed,dragging:grpDnd.dragId===task.id,'drop-before':grpDnd.drop&&grpDnd.drop.id===task.id&&grpDnd.drop.pos==='before','drop-after':grpDnd.drop&&grpDnd.drop.id===task.id&&grpDnd.drop.pos==='after'}"
+             ng-style="{'border-left-color':getPrioColor(task.priority)}"
+             draggable="{{task.completed?'false':'true'}}"
+             group-task-dnd="task.id">
           <div class="d-flex align-items-start gap-3">
             <button class="btn-icon mt-1 flex-shrink-0" type="button"
                     ng-click="toggleGroupTask(task.id, task.completed);$event.stopPropagation()">
@@ -1555,11 +1608,17 @@
               <p class="text-pre mt-1 mb-0" style="font-size:.83rem;color:var(--muted);" ng-if="task.description">{{task.description}}</p>
               <div ng-if="task.steps && task.steps.length" class="mt-1" style="display:flex;flex-direction:column;gap:2px;">
                 <div ng-repeat="s in task.steps track by s.id"
-                     style="font-size:.78rem;color:var(--muted);display:flex;align-items:center;gap:5px;cursor:pointer;"
-                     ng-click="toggleGroupStep(task, s.id, $event)">
-                  <i class="bi" ng-class="s.done ? 'bi-check-square-fill' : 'bi-square'"
-                     ng-style="{'color': s.done ? 'var(--accent)' : 'var(--muted)','font-size':'.72rem','flex-shrink':'0'}"></i>
-                  <span ng-class="{'text-decoration-line-through opacity-50': s.done}">{{s.text}}</span>
+                     style="font-size:.78rem;color:var(--muted);display:flex;align-items:center;gap:5px;">
+                  <button class="btn-icon p-0 flex-shrink-0" type="button" ng-click="toggleGroupStep(task, s.id, $event)">
+                    <i class="bi" ng-class="s.done ? 'bi-check-square-fill' : 'bi-square'"
+                       ng-style="{'color': s.done ? 'var(--accent)' : 'var(--muted)','font-size':'.72rem'}"></i>
+                  </button>
+                  <div style="flex:1;min-width:0;">
+                    <span ng-class="{'text-decoration-line-through opacity-50': s.done}">{{s.text}}</span>
+                    <div ng-if="s.done&&s.completedAt" style="font-size:.72rem;color:var(--muted);">
+                      <i class="bi bi-check2-circle me-1"></i>{{t.completedAt||'完成於'}} {{formatDT(s.completedAt)}}
+                    </div>
+                  </div>
                 </div>
               </div>
               <div class="d-flex flex-wrap gap-3 mt-1 meta-row">
@@ -1993,6 +2052,66 @@ angular.module('todoApp', [])
           scope.dnd.dragId = null; scope.dnd.drop = null;
         });
       });
+
+      /* ── Touch Drag（行動裝置）── */
+      var _touchActive = false;
+      var _touchStartY = 0;
+      var _DRAG_PX = 8; /* 觸發拖曳的最小位移 px */
+
+      el0.addEventListener('touchstart', function(e) {
+        if (el0.getAttribute('draggable') === 'false') return;
+        _touchStartY = e.touches[0].clientY;
+        _touchActive = false;
+      }, { passive: true });
+
+      el0.addEventListener('touchmove', function(e) {
+        if (el0.getAttribute('draggable') === 'false') return;
+        var touch = e.touches[0];
+        if (!_touchActive) {
+          if (Math.abs(touch.clientY - _touchStartY) < _DRAG_PX) return;
+          _touchActive = true;
+          el0.classList.add('dragging');
+          scope.$apply(function() { scope.dnd.dragId = taskId; });
+        }
+        e.preventDefault(); /* 阻止頁面捲動 */
+        /* 暫時隱藏自身，讓 elementFromPoint 能命中下方元素 */
+        el0.style.pointerEvents = 'none';
+        var target = document.elementFromPoint(touch.clientX, touch.clientY);
+        el0.style.pointerEvents = '';
+        if (!target) return;
+        /* 向上走到含 task-dnd 屬性的祖先 */
+        var te = target;
+        while (te && te !== document.body && !te.hasAttribute('task-dnd')) te = te.parentElement;
+        if (te && te !== el0 && te.hasAttribute('task-dnd')) {
+          var tid = scope.$eval(te.getAttribute('task-dnd'));
+          if (tid) {
+            var r = te.getBoundingClientRect();
+            var pos = touch.clientY < r.top + r.height / 2 ? 'before' : 'after';
+            scope.$apply(function() { scope.dnd.drop = { id: tid, pos: pos }; });
+          }
+        } else {
+          scope.$apply(function() { if (scope.dnd.drop) scope.dnd.drop = null; });
+        }
+      }, { passive: false });
+
+      function _onTouchEnd() {
+        if (!_touchActive) return;
+        _touchActive = false;
+        el0.classList.remove('dragging');
+        scope.$apply(function() {
+          var drop = scope.dnd.drop;
+          if (scope.dnd.dragId && drop && scope.dnd.dragId !== drop.id)
+            scope.reorderTask(scope.dnd.dragId, drop.id, drop.pos);
+          scope.dnd.dragId = null;
+          scope.dnd.drop = null;
+        });
+      }
+      el0.addEventListener('touchend',    _onTouchEnd, { passive: false });
+      el0.addEventListener('touchcancel', function() {
+        _touchActive = false;
+        el0.classList.remove('dragging');
+        scope.$apply(function() { scope.dnd.dragId = null; scope.dnd.drop = null; });
+      });
     }
   };
 })
@@ -2034,6 +2153,106 @@ angular.module('todoApp', [])
           }
           scope.stepDnd.dragId = null; scope.stepDnd.dropId = null; scope.stepDnd.pos = null;
         });
+      });
+    }
+  };
+})
+
+/* ===== Group Task Drag-and-Drop Directive ===== */
+.directive('groupTaskDnd', function() {
+  return {
+    restrict: 'A',
+    link: function(scope, el, attrs) {
+      var taskId = scope.$eval(attrs.groupTaskDnd);
+      var el0 = el[0];
+      el0.addEventListener('dragstart', function(e) {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', String(taskId));
+        setTimeout(function() { el0.classList.add('dragging'); }, 0);
+        scope.$apply(function() { scope.grpDnd.dragId = taskId; });
+      });
+      el0.addEventListener('dragend', function() {
+        el0.classList.remove('dragging');
+        scope.$apply(function() { scope.grpDnd.dragId = null; scope.grpDnd.drop = null; });
+      });
+      el0.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        var rect = el0.getBoundingClientRect();
+        var pos = e.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
+        scope.$apply(function() { scope.grpDnd.drop = {id: taskId, pos: pos}; });
+      });
+      el0.addEventListener('dragleave', function(e) {
+        if (!el0.contains(e.relatedTarget)) {
+          scope.$apply(function() { if (scope.grpDnd.drop && scope.grpDnd.drop.id === taskId) scope.grpDnd.drop = null; });
+        }
+      });
+      el0.addEventListener('drop', function(e) {
+        e.preventDefault();
+        scope.$apply(function() {
+          var drop = scope.grpDnd.drop;
+          if (scope.grpDnd.dragId && scope.grpDnd.dragId !== taskId && drop) {
+            scope.reorderGroupTask(scope.grpDnd.dragId, taskId, drop.pos);
+          }
+          scope.grpDnd.dragId = null; scope.grpDnd.drop = null;
+        });
+      });
+
+      /* ── Touch Drag（行動裝置）── */
+      var _touchActive = false;
+      var _touchStartY = 0;
+      var _DRAG_PX = 8;
+
+      el0.addEventListener('touchstart', function(e) {
+        if (el0.getAttribute('draggable') === 'false') return;
+        _touchStartY = e.touches[0].clientY;
+        _touchActive = false;
+      }, { passive: true });
+
+      el0.addEventListener('touchmove', function(e) {
+        if (el0.getAttribute('draggable') === 'false') return;
+        var touch = e.touches[0];
+        if (!_touchActive) {
+          if (Math.abs(touch.clientY - _touchStartY) < _DRAG_PX) return;
+          _touchActive = true;
+          el0.classList.add('dragging');
+          scope.$apply(function() { scope.grpDnd.dragId = taskId; });
+        }
+        e.preventDefault();
+        el0.style.pointerEvents = 'none';
+        var target = document.elementFromPoint(touch.clientX, touch.clientY);
+        el0.style.pointerEvents = '';
+        if (!target) return;
+        var te = target;
+        while (te && te !== document.body && !te.hasAttribute('group-task-dnd')) te = te.parentElement;
+        if (te && te !== el0 && te.hasAttribute('group-task-dnd')) {
+          var tid = scope.$eval(te.getAttribute('group-task-dnd'));
+          if (tid) {
+            var r = te.getBoundingClientRect();
+            var pos = touch.clientY < r.top + r.height / 2 ? 'before' : 'after';
+            scope.$apply(function() { scope.grpDnd.drop = { id: tid, pos: pos }; });
+          }
+        } else {
+          scope.$apply(function() { if (scope.grpDnd.drop) scope.grpDnd.drop = null; });
+        }
+      }, { passive: false });
+
+      function _onTouchEnd() {
+        if (!_touchActive) return;
+        _touchActive = false;
+        el0.classList.remove('dragging');
+        scope.$apply(function() {
+          var drop = scope.grpDnd.drop;
+          if (scope.grpDnd.dragId && drop && scope.grpDnd.dragId !== drop.id)
+            scope.reorderGroupTask(scope.grpDnd.dragId, drop.id, drop.pos);
+          scope.grpDnd.dragId = null;
+          scope.grpDnd.drop = null;
+        });
+      }
+      el0.addEventListener('touchend',    _onTouchEnd, { passive: false });
+      el0.addEventListener('touchcancel', function() {
+        _touchActive = false;
+        el0.classList.remove('dragging');
+        scope.$apply(function() { scope.grpDnd.dragId = null; scope.grpDnd.drop = null; });
       });
     }
   };
@@ -2336,6 +2555,7 @@ angular.module('todoApp', [])
   $scope.notifications = [];
   $scope.showMapModal = false;
   $scope.dnd = {dragId:null, drop:null};
+  $scope.grpDnd = {dragId:null, drop:null};
   $scope.stepDnd = {dragId:null, dropId:null, pos:null};
   $scope.ui = {
     newStepText:'', newTagInput:'', mapSearch:'',
@@ -2345,6 +2565,7 @@ angular.module('todoApp', [])
     prioEditLevel: null,        /* 正在編輯的優先級 level */
     prioFilterOpen: false,      /* 布局面板優先級過濾下拉 */
     isGrpPrioOpen: false,       /* 群組任務表單優先級下拉 */
+    grpPrioEditLevel: null,     /* 群組任務表單優先級正在編輯的 level */
     grpPrioFilterOpen: false,   /* 群組布局面板優先級過濾下拉 */
     trashOpen: false,           /* 今日任務垃圾桶下拉 */
     grpTrashOpen: false,        /* 群組任務垃圾桶下拉 */
@@ -2695,6 +2916,35 @@ angular.module('todoApp', [])
     $scope.form.priority=String(newLevel);
     $scope.ui.isPrioOpen=false;
   };
+  /* 群組任務表單優先級 */
+  $scope.grpPrioItemClick = function(level) {
+    if ($scope.ui.grpPrioEditLevel === level) return;
+    $scope.groupForm.priority = String(level);
+    $scope.ui.isGrpPrioOpen = false;
+    $scope.ui.grpPrioEditLevel = null;
+  };
+  $scope.addGrpPriorityFromMenu = function() {
+    $scope.addPriority();
+    var newLevel = $scope.settings.priorities[$scope.settings.priorities.length - 1].level;
+    $scope.groupForm.priority = String(newLevel);
+    $scope.ui.isGrpPrioOpen = false;
+  };
+  $scope.$watch('ui.isGrpPrioOpen', function(val) { if (!val) $scope.ui.grpPrioEditLevel = null; });
+  /* 群組任務拖曳排序 */
+  $scope.reorderGroupTask = function(draggedId, targetId, pos) {
+    var cur = $scope._groupCur;
+    var di = cur.findIndex(function(t) { return t.id === draggedId; });
+    if (di < 0) return;
+    var dragged = cur.splice(di, 1)[0];
+    var ti = cur.findIndex(function(t) { return t.id === targetId; });
+    if (ti < 0) { cur.push(dragged); } else { cur.splice(pos === 'before' ? ti : ti + 1, 0, dragged); }
+    var newDi = cur.indexOf(dragged);
+    var lo = Math.min(di, newDi), hi = Math.max(di, newDi);
+    for (var i = lo; i <= hi; i++) {
+      cur[i].order = i;
+      db.collection('groups').doc(cur[i]._groupId).collection('tasks').doc(cur[i].id).update({ order: i });
+    }
+  };
   $scope.removePriority = function(level) {
     if($scope.settings.priorities.length<=1)return;
     $scope.settings.priorities=$scope.settings.priorities.filter(function(p){return p.level!==level;});
@@ -2884,7 +3134,7 @@ angular.module('todoApp', [])
   $scope.stepKeydown=function(e){ if(e.key==='Enter'){e.preventDefault();$scope.addFormStep();} };
   $scope.stepEditKeydown=function(e){ if(e.key==='Enter'||e.key==='Escape'){e.preventDefault();$scope.ui.stepEditId=null;} };
   $scope.removeFormStep=function(id){ $scope.form.steps=$scope.form.steps.filter(function(s){return s.id!==id;}); };
-  $scope.toggleFormStep=function(id){ var s=$scope.form.steps.find(function(s){return s.id===id;}); if(s)s.completed=!s.completed; };
+  $scope.toggleFormStep=function(id){ var s=$scope.form.steps.find(function(s){return s.id===id;}); if(s){s.completed=!s.completed;s.completedAt=s.completed?new Date().toISOString():null;} };
   $scope.reorderFormStep=function(dragId,targetId,pos){
     var di=$scope.form.steps.findIndex(function(s){return s.id===dragId;});
     if(di<0)return;
@@ -2895,7 +3145,8 @@ angular.module('todoApp', [])
   };
   $scope.toggleListStep=function(taskId,stepId){
     var task=$scope.tasks.find(function(t){return t.id===taskId;});
-    if(task){var s=task.steps.find(function(s){return s.id===stepId;});if(s)s.completed=!s.completed;}
+    if(task){var s=task.steps.find(function(s){return s.id===stepId;});
+      if(s){s.completed=!s.completed;s.completedAt=s.completed?new Date().toISOString():null;}}
   };
 
   /* Tags */
@@ -3218,7 +3469,13 @@ angular.module('todoApp', [])
         va = _grpNameMap[a._groupId] || a._groupId || '';
         vb = _grpNameMap[b._groupId] || b._groupId || '';
       }
-      else { return 0; }
+      else {
+        /* 排序欄位為'無'時，依拖曳設定的 order 欄位排列 */
+        var ao = typeof a.order === 'number' ? a.order : Infinity;
+        var bo = typeof b.order === 'number' ? b.order : Infinity;
+        if (ao !== bo) return ao - bo;
+        return 0;
+      }
       if (va < vb) return asc ? -1 : 1;
       if (va > vb) return asc ? 1 : -1;
       return 0;
@@ -3477,7 +3734,7 @@ angular.module('todoApp', [])
   };
   $scope.toggleGrpFormStep = function(id) {
     var s = $scope.groupForm.steps.find(function(s) { return s.id === id; });
-    if (s) s.completed = !s.completed;
+    if (s) { s.completed = !s.completed; s.completedAt = s.completed ? new Date().toISOString() : null; }
   };
   $scope.saveGroupTask = function(e) {
     if (e) e.preventDefault();
@@ -3539,7 +3796,9 @@ angular.module('todoApp', [])
     if ($event) $event.stopPropagation();
     if (!task || !task._groupId) return;
     var steps = (task.steps || []).map(function(s) {
-      return s.id === stepId ? angular.extend({}, s, { done: !s.done }) : s;
+      if (s.id !== stepId) return s;
+      var nowDone = !s.done;
+      return angular.extend({}, s, { done: nowDone, completedAt: nowDone ? new Date().toISOString() : null });
     });
     db.collection('groups').doc(task._groupId).collection('tasks').doc(task.id)
       .update({ steps: steps, updatedBy: _uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
