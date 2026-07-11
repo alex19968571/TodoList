@@ -79,6 +79,8 @@
     .c-input{background:var(--inp);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.45rem .75rem;width:100%;font-size:.88rem;transition:border-color .15s;}
     .c-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-light);}
     textarea.c-input{resize:vertical;}
+    /* datetime-local：關閉瀏覽器預設外觀，防止行動裝置超出容器寬度 */
+    input[type="datetime-local"].c-input{-webkit-appearance:none;appearance:none;min-width:0;box-sizing:border-box;}
     select.c-input{
       -webkit-appearance:none;appearance:none;cursor:pointer;
       background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%23718096' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
@@ -284,6 +286,8 @@
       .outlook-week-row{display:flex;flex-direction:column;}
       .outlook-cell{min-height:36px;}
       .sidebar-user{display:none;}
+      /* datetime-local 在行動裝置縮小字型，避免固定最小寬度撐破版面 */
+      input[type="datetime-local"].c-input{font-size:.78rem;padding:.4rem .5rem;}
     }
 
     /* ── 元件顏色覆蓋 Bootstrap ── */
@@ -2121,6 +2125,7 @@ angular.module('todoApp', [])
     link: function(scope, el, attrs) {
       var taskId = scope.$eval(attrs.taskDnd);
       var el0 = el[0];
+      el0._taskDndId = taskId; /* 快取到 DOM，供 touchmove 跨元素讀取時不需重新 eval scope */
       el0.addEventListener('dragstart', function(e) {
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', String(taskId));
@@ -2198,7 +2203,7 @@ angular.module('todoApp', [])
         var te = target;
         while (te && te !== document.body && !te.hasAttribute('task-dnd')) te = te.parentElement;
         if (te && te !== el0 && te.hasAttribute('task-dnd')) {
-          var tid = scope.$eval(te.getAttribute('task-dnd'));
+          var tid = te._taskDndId;
           if (tid) {
             var r = te.getBoundingClientRect();
             var pos = touch.clientY < r.top + r.height / 2 ? 'before' : 'after';
@@ -2284,6 +2289,7 @@ angular.module('todoApp', [])
     link: function(scope, el, attrs) {
       var taskId = scope.$eval(attrs.groupTaskDnd);
       var el0 = el[0];
+      el0._grpTaskDndId = taskId; /* 快取到 DOM，供 touchmove 跨元素讀取時不需重新 eval scope */
       el0.addEventListener('dragstart', function(e) {
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', String(taskId));
@@ -2360,7 +2366,7 @@ angular.module('todoApp', [])
         var te = target;
         while (te && te !== document.body && !te.hasAttribute('group-task-dnd')) te = te.parentElement;
         if (te && te !== el0 && te.hasAttribute('group-task-dnd')) {
-          var tid = scope.$eval(te.getAttribute('group-task-dnd'));
+          var tid = te._grpTaskDndId;
           if (tid) {
             var r = te.getBoundingClientRect();
             var pos = touch.clientY < r.top + r.height / 2 ? 'before' : 'after';
