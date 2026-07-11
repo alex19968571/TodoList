@@ -160,13 +160,13 @@
     .outlook-wday{padding:.45rem;text-align:center;font-size:.75rem;font-weight:700;color:var(--muted);border-right:1px solid var(--border);}
     .outlook-wday:last-child{border-right:none;}
     .outlook-weeks{flex:1;display:flex;flex-direction:column;}
-    .outlook-week-row{flex:1;}
+    .outlook-week-row{flex:1;display:flex;flex-direction:column;}
     .cal-span-inline{display:block;height:18px;line-height:18px;font-size:.69rem;margin:1px -4px;padding:0 2px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:0;transition:filter .12s;}
     .cal-span-inline.span-round-left{border-top-left-radius:3px;border-bottom-left-radius:3px;margin-left:0;padding-left:5px;}
     .cal-span-inline.span-round-right{border-top-right-radius:3px;border-bottom-right-radius:3px;margin-right:0;padding-right:5px;}
     .cal-span-inline:hover{filter:brightness(1.14);}
-    .outlook-cells{display:grid;grid-template-columns:repeat(7,1fr);flex:1;}
-    .outlook-cell{min-height:calc((100vh - 240px) / 6);border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:5px 4px;position:relative;overflow:hidden;}
+    .outlook-cells{display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:1fr;flex:1;}
+    .outlook-cell{border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:5px 4px;position:relative;overflow:hidden;}
     .outlook-cell:nth-child(7n){border-right:none;}
     .outlook-week-row:last-child .outlook-cell{border-bottom:none;}
     .outlook-cell.other-month{background:rgba(0,0,0,.018);}
@@ -255,11 +255,15 @@
       .sidebar .nav-spacer{display:none;}
       .sidebar .nav-group-wrap{flex:1;max-width:90px;display:flex;flex-direction:column;align-items:stretch;}
       .sidebar .nav-group-wrap > .nav-btn{flex:1;max-width:none;width:100%;}
-      /* main-wrap 底部距離配合新導覽列高度（1px border + 0.8rem pad + 56px btn = 約 74px） */
-      .main-wrap{margin-left:0;margin-bottom:74px;flex-direction:column;}
-      .tasks-panel,.cal-main{border-right:none;padding:1rem;}
-      .right-panel{width:100%;min-width:unset;border-left:none;border-top:1px solid var(--border);padding-bottom:calc(74px + 2rem);}
-      .outlook-cell{min-height:60px;}
+      /* main-wrap：給定明確高度，讓內部 flex:1 chain 正常運作（行事曆列等高的關鍵） */
+      .main-wrap{margin-left:0;height:calc(100vh - 74px);height:calc(100dvh - 74px);min-height:unset;margin-bottom:0;flex-direction:column;overflow-y:auto;}
+      /* min-height:0 解除 flex item 預設 min-height:auto，允許收縮至 flex 分配的高度 */
+      .tasks-panel,.cal-main{border-right:none;padding:1rem;min-height:0;}
+      /* main-wrap 已包含底部導覽列偏移，right-panel 只需基本留白 */
+      .right-panel{width:100%;min-width:unset;border-left:none;border-top:1px solid var(--border);padding-bottom:2rem;}
+      /* 行事曆：讓 outlook-week-row 成為 flex 容器，outlook-cells(flex:1) 才能填滿週列高度 */
+      .outlook-week-row{display:flex;flex-direction:column;}
+      .outlook-cell{min-height:36px;}
       .sidebar-user{display:none;}
     }
 
