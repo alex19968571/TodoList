@@ -134,8 +134,15 @@
 
     /* ── OVERDUE ── */
     .overdue-area{flex:1;overflow-y:auto;padding:1.25rem;background:var(--accent-light);}
+    .overdue-toggle-header{cursor:pointer;user-select:none;-webkit-user-select:none;border-radius:6px;padding:2px 4px;margin:-2px -4px;transition:background .15s;}
+    .overdue-toggle-header:hover{background:rgba(0,0,0,.05);}
+    body.dark-theme .overdue-toggle-header:hover{background:rgba(255,255,255,.07);}
     .overdue-card{background:var(--card);border:1px solid var(--accent-light);border-radius:8px;padding:.75rem;margin-bottom:.75rem;cursor:pointer;transition:box-shadow .15s;}
     .overdue-card:hover{box-shadow:0 2px 8px var(--accent-light);}
+    @media(max-width:991px){
+      /* 手機：解除高度限制，讓頁面自然捲動顯示完整內容 */
+      .overdue-area{flex:none;overflow-y:visible;}
+    }
 
     /* ── MINI CALENDAR (right panel) ── */
     .cal-header{background:var(--card);border-bottom:1px solid var(--border);padding:1.25rem;}
@@ -235,13 +242,23 @@
 
     /* ── RESPONSIVE ── */
     @media(max-width:991px){
-      .sidebar{width:100%;position:fixed;bottom:0;top:auto;left:0;right:0;flex-direction:row;border-right:none;border-top:1px solid var(--border);padding:.5rem;align-items:center;justify-content:space-around;min-height:unset;}
+      .sidebar{width:100%;position:fixed;bottom:0;top:auto;left:0;right:0;flex-direction:row;border-right:none;border-top:1px solid var(--border);padding:.4rem .5rem;align-items:stretch;justify-content:space-around;min-height:unset;}
       .sidebar .brand{display:none;}
-      .sidebar .nav-btn{flex-direction:column;gap:2px;font-size:.68rem;justify-content:center;width:auto;padding:.3rem .5rem;}
+      /* 統一底部導覽按鈕高度：隱藏徽章/箭頭/子選單，鎖定固定高度 */
+      .sidebar .nav-btn{flex-direction:column;gap:2px;font-size:.68rem;justify-content:center;align-items:center;width:auto;flex:1;max-width:90px;padding:.25rem .3rem;height:56px;}
+      .sidebar .nav-label{flex-grow:0!important;}
+      .sidebar .nav-badges{display:none;}
+      .sidebar .nav-chevron{display:none;}
+      .sidebar .nav-sub{display:none!important;}
       .badge-count{display:none;}
-      .main-wrap{margin-left:0;margin-bottom:68px;flex-direction:column;}
+      /* 隱藏 spacer，讓群組容器與其他按鈕等寬 */
+      .sidebar .nav-spacer{display:none;}
+      .sidebar .nav-group-wrap{flex:1;max-width:90px;display:flex;flex-direction:column;align-items:stretch;}
+      .sidebar .nav-group-wrap > .nav-btn{flex:1;max-width:none;width:100%;}
+      /* main-wrap 底部距離配合新導覽列高度（1px border + 0.8rem pad + 56px btn = 約 74px） */
+      .main-wrap{margin-left:0;margin-bottom:74px;flex-direction:column;}
       .tasks-panel,.cal-main{border-right:none;padding:1rem;}
-      .right-panel{width:100%;min-width:unset;border-left:none;border-top:1px solid var(--border);}
+      .right-panel{width:100%;min-width:unset;border-left:none;border-top:1px solid var(--border);padding-bottom:calc(74px + 2rem);}
       .outlook-cell{min-height:60px;}
       .sidebar-user{display:none;}
     }
@@ -260,6 +277,16 @@
     .auth-tab-btn{padding:.5rem 1.25rem;border:none;background:none;color:#718096;font-size:.95rem;cursor:pointer;border-bottom:2px solid transparent;font-weight:500;transition:color .15s,border-color .15s;}
     .auth-tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600;}
 
+    /* ── 手機頂部列（Logo + 使用者）── */
+    .mobile-topbar{display:none;}
+    @media(max-width:991px){
+      .mobile-topbar{display:flex;align-items:center;justify-content:space-between;padding:.55rem 1rem;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200;gap:.5rem;}
+      .mobile-topbar-logo{display:flex;align-items:center;gap:.4rem;font-size:.9rem;font-weight:700;letter-spacing:.01em;color:var(--text);text-decoration:none;}
+      .mobile-topbar-logo img{height:22px;width:auto;}
+      .mobile-topbar-user{display:flex;align-items:center;gap:.5rem;flex-shrink:0;}
+      .mobile-topbar-email{font-size:.72rem;color:var(--muted);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+      .mobile-topbar .sidebar-avatar{width:26px;height:26px;font-size:.68rem;}
+    }
     /* ── 側欄使用者區域 ── */
     .sidebar-user{margin-top:auto;border-top:1px solid var(--border);padding:.75rem .5rem 0;}
     .sidebar-avatar{width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.82rem;font-weight:700;overflow:hidden;cursor:pointer;transition:opacity .15s;}
@@ -270,8 +297,7 @@
     .bg-fab:hover{transform:scale(1.1);box-shadow:0 6px 22px rgba(0,0,0,.35);}
     .bg-fab.today-fab{right:calc(320px + 1.75rem);}
     @media(max-width:991px){
-      .bg-fab{bottom:calc(68px + 1rem);}
-      .bg-fab.today-fab{right:1.75rem;}
+      .bg-fab{display:none;}
     }
     /* 日期格背景圖設定按鈕 */
     .cal-cell-bg{position:absolute;bottom:4px;right:4px;background:none;border:none;color:var(--muted);cursor:pointer;opacity:0;transition:opacity .15s;padding:0;line-height:1;font-size:.82rem;}
@@ -435,9 +461,9 @@
     <span class="nav-label">{{t.calendar}}</span>
   </button>
   <!-- 群組（可展開） -->
-  <div ng-if="currentUser && currentUser!=='__guest__'">
+  <div class="nav-group-wrap" ng-if="currentUser && currentUser!=='__guest__'">
     <button class="nav-btn" ng-class="{active:tab==='group'||tab==='group-admin'}"
-            ng-click="groupNavOpen=!groupNavOpen">
+            ng-click="groupNavClick()">
       <i class="bi bi-people-fill fs-5"></i>
       <span class="nav-label flex-grow-1">{{t.groupNav}}</span>
       <span class="nav-badges" ng-if="!groupNavOpen">
@@ -464,7 +490,7 @@
     </div>
   </div>
 
-  <div style="flex:1;"></div>
+  <div class="nav-spacer" style="flex:1;"></div>
 
   <!-- 系統設定（底部） -->
   <button class="nav-btn" ng-class="{active:tab==='settings'}" ng-click="setTab('settings')">
@@ -496,6 +522,28 @@
 
 <!-- ===== MAIN WRAP ===== -->
 <div class="main-wrap">
+
+  <!-- 手機 / 平板：頂部列（Logo + 使用者 + 登出） -->
+  <div class="mobile-topbar" ng-if="currentUser">
+    <div class="mobile-topbar-logo">
+      <img src="logo.png" alt="KingList" onerror="this.style.display='none'">
+      <span>KingList</span>
+    </div>
+    <div class="mobile-topbar-user">
+      <span class="mobile-topbar-email">
+        {{currentUser==='__guest__' ? t.guestMode : currentUser}}
+      </span>
+      <div class="sidebar-avatar" ng-click="openAvatarEditor()" title="點擊更換頭貼">
+        <img ng-if="settings.avatarUrl && currentUser!=='__guest__'" ng-src="{{settings.avatarUrl}}" alt="avatar">
+        <span ng-if="!(settings.avatarUrl && currentUser!=='__guest__')">
+          {{currentUser==='__guest__'?'G':currentUser.charAt(0).toUpperCase()}}
+        </span>
+      </div>
+      <button class="btn-icon flex-shrink-0" title="{{t.logout}}" ng-click="logout()">
+        <i class="bi bi-box-arrow-right" style="font-size:1rem;"></i>
+      </button>
+    </div>
+  </div>
 
   <!-- ===== SETTINGS ===== -->
   <div class="settings-panel" ng-if="tab==='settings'">
@@ -1725,59 +1773,73 @@
     </div>
     <!-- 今日任務：過期未完成 -->
     <div class="overdue-area" ng-if="tab==='today'">
-      <div class="d-flex align-items-center gap-2 mb-3 fw-bold" style="color:var(--accent);">
+      <div class="d-flex align-items-center gap-2 fw-bold overdue-toggle-header"
+           ng-class="overdueOpen?'mb-3':'mb-0'"
+           style="color:var(--accent);"
+           ng-click="overdueOpen=!overdueOpen">
         <i class="bi bi-exclamation-triangle-fill"></i>
-        <h6 class="mb-0">{{t.overdue}}</h6>
+        <h6 class="mb-0 flex-grow-1">{{t.overdue}}</h6>
+        <span ng-if="_overdue.length" style="font-size:.75rem;font-weight:400;opacity:.7;">{{_overdue.length}}</span>
+        <i class="bi" ng-class="overdueOpen?'bi-chevron-up':'bi-chevron-down'" style="font-size:.8rem;"></i>
       </div>
-      <p style="font-size:.82rem;color:var(--muted);" ng-if="!_overdue.length">目前沒有過期未完成項目。</p>
-      <div class="overdue-card" ng-repeat="task in _overdue track by task.id" ng-click="editTask(task)">
-        <div class="d-flex justify-content-between align-items-start mb-1">
-          <span class="fw-medium" style="font-size:.87rem;color:var(--accent);">{{task.text}}</span>
-          <div class="d-flex gap-1 ms-2 flex-shrink-0">
-            <button class="btn-icon" type="button" title="刪除"
-                    ng-click="$event.stopPropagation();directDeleteOverdueTask(task.id)">
-              <i class="bi bi-trash" style="font-size:.85rem;color:var(--muted);"></i>
-            </button>
-            <button class="btn-icon" type="button" title="標示完成"
-                    ng-click="$event.stopPropagation();toggleTask(task.id)">
-              <i class="bi bi-check-circle" style="font-size:.95rem;"></i>
-            </button>
+      <div ng-if="overdueOpen">
+        <p style="font-size:.82rem;color:var(--muted);" ng-if="!_overdue.length">目前沒有過期未完成項目。</p>
+        <div class="overdue-card" ng-repeat="task in _overdue track by task.id" ng-click="editTask(task)">
+          <div class="d-flex justify-content-between align-items-start mb-1">
+            <span class="fw-medium" style="font-size:.87rem;color:var(--accent);">{{task.text}}</span>
+            <div class="d-flex gap-1 ms-2 flex-shrink-0">
+              <button class="btn-icon" type="button" title="刪除"
+                      ng-click="$event.stopPropagation();directDeleteOverdueTask(task.id)">
+                <i class="bi bi-trash" style="font-size:.85rem;color:var(--muted);"></i>
+              </button>
+              <button class="btn-icon" type="button" title="標示完成"
+                      ng-click="$event.stopPropagation();toggleTask(task.id)">
+                <i class="bi bi-check-circle" style="font-size:.95rem;"></i>
+              </button>
+            </div>
           </div>
+          <small style="color:var(--muted);">{{t.deadlinePrefix}}: {{formatDT(task.deadline)}}</small>
         </div>
-        <small style="color:var(--muted);">{{t.deadlinePrefix}}: {{formatDT(task.deadline)}}</small>
       </div>
     </div>
     <!-- 群組任務：逾期未完成清單（與今日任務邏輯相同：deadline 已過且未完成） -->
     <div class="overdue-area" ng-if="tab==='group'">
-      <div class="d-flex align-items-center gap-2 mb-3 fw-bold" style="color:var(--accent);">
+      <div class="d-flex align-items-center gap-2 fw-bold overdue-toggle-header"
+           ng-class="grpOverdueOpen?'mb-3':'mb-0'"
+           style="color:var(--accent);"
+           ng-click="grpOverdueOpen=!grpOverdueOpen">
         <i class="bi bi-exclamation-triangle-fill"></i>
-        <h6 class="mb-0">{{t.groupNav}} {{t.overdue}}</h6>
+        <h6 class="mb-0 flex-grow-1">{{t.groupNav}} {{t.overdue}}</h6>
+        <span ng-if="_groupOverdue.length" style="font-size:.75rem;font-weight:400;opacity:.7;">{{_groupOverdue.length}}</span>
+        <i class="bi" ng-class="grpOverdueOpen?'bi-chevron-up':'bi-chevron-down'" style="font-size:.8rem;"></i>
       </div>
-      <p style="font-size:.82rem;color:var(--muted);" ng-if="!myGroups.length">尚未加入任何群組。</p>
-      <p style="font-size:.82rem;color:var(--muted);" ng-if="myGroups.length && !_groupOverdue.length">目前沒有逾期未完成項目。</p>
-      <div class="overdue-card"
-           ng-repeat="task in _groupOverdue track by task.id"
-           ng-click="editGroupTask(task)">
-        <div class="d-flex justify-content-between align-items-start mb-1">
-          <span class="fw-medium" style="font-size:.87rem;color:var(--accent);">
-            <i class="bi bi-flag-fill me-1" style="font-size:.65rem;color:{{getPrioColor(task.priority)}}"></i>
-            {{task.text}}
-          </span>
-          <div class="d-flex gap-1 ms-2 flex-shrink-0">
-            <button class="btn-icon" type="button" title="刪除"
-                    ng-click="$event.stopPropagation();directDeleteGroupOverdueTask(task.id)">
-              <i class="bi bi-trash" style="font-size:.85rem;color:var(--muted);"></i>
-            </button>
-            <button class="btn-icon" type="button" title="標示完成"
-                    ng-click="$event.stopPropagation();toggleGroupTask(task.id, task.completed)">
-              <i class="bi bi-check-circle" style="font-size:.95rem;"></i>
-            </button>
+      <div ng-if="grpOverdueOpen">
+        <p style="font-size:.82rem;color:var(--muted);" ng-if="!myGroups.length">尚未加入任何群組。</p>
+        <p style="font-size:.82rem;color:var(--muted);" ng-if="myGroups.length && !_groupOverdue.length">目前沒有逾期未完成項目。</p>
+        <div class="overdue-card"
+             ng-repeat="task in _groupOverdue track by task.id"
+             ng-click="editGroupTask(task)">
+          <div class="d-flex justify-content-between align-items-start mb-1">
+            <span class="fw-medium" style="font-size:.87rem;color:var(--accent);">
+              <i class="bi bi-flag-fill me-1" style="font-size:.65rem;color:{{getPrioColor(task.priority)}}"></i>
+              {{task.text}}
+            </span>
+            <div class="d-flex gap-1 ms-2 flex-shrink-0">
+              <button class="btn-icon" type="button" title="刪除"
+                      ng-click="$event.stopPropagation();directDeleteGroupOverdueTask(task.id)">
+                <i class="bi bi-trash" style="font-size:.85rem;color:var(--muted);"></i>
+              </button>
+              <button class="btn-icon" type="button" title="標示完成"
+                      ng-click="$event.stopPropagation();toggleGroupTask(task.id, task.completed)">
+                <i class="bi bi-check-circle" style="font-size:.95rem;"></i>
+              </button>
+            </div>
           </div>
+          <small style="color:var(--muted);">{{t.deadlinePrefix}}: {{formatDT(task.deadline)}}</small>
+          <small style="color:var(--muted);font-size:.72rem;" ng-if="task.updatedBy">
+            <i class="bi bi-pencil-fill"></i> {{getMemberEmail(task.updatedBy)}}
+          </small>
         </div>
-        <small style="color:var(--muted);">{{t.deadlinePrefix}}: {{formatDT(task.deadline)}}</small>
-        <small style="color:var(--muted);font-size:.72rem;" ng-if="task.updatedBy">
-          <i class="bi bi-pencil-fill"></i> {{getMemberEmail(task.updatedBy)}}
-        </small>
       </div>
     </div>
   </div>
@@ -2438,6 +2500,8 @@ angular.module('todoApp', [])
   $scope._groupOverdue      = [];
   $scope.notifCount         = 0;
   $scope.overdueCount       = 0;
+  $scope.overdueOpen        = true;   /* 未完成事項預設展開 */
+  $scope.grpOverdueOpen     = true;   /* 群組未完成事項預設展開 */
   $scope.groupNotifCount    = 0;
   $scope.groupOverdueCount  = 0;
   $scope._uid               = null;
@@ -2998,6 +3062,15 @@ angular.module('todoApp', [])
 
   /* Tab */
   $scope.groupNavOpen = false;
+  /* 群組按鈕點擊：手機直接跳群組任務，桌機展開子選單 */
+  $scope.groupNavClick = function() {
+    if (window.innerWidth <= 991) {
+      $scope.groupNavOpen = true;
+      $scope.setTab('group');
+    } else {
+      $scope.groupNavOpen = !$scope.groupNavOpen;
+    }
+  };
   $scope.setTab = function(t) {
     $scope.tab = t;
     if (t === 'today') { $scope.selectedDate = new Date(); $scope.calMonth = new Date(); $scope.calYear = new Date().getFullYear(); }
@@ -3897,6 +3970,8 @@ angular.module('todoApp', [])
   }
 
   /* Firebase Auth 狀態監聽（頁面載入 / 登入 / 登出皆觸發） */
+  /* SESSION persistence 避免 file:// 下 iframe 被 Chrome 安全策略阻擋的警告 */
+  auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(function(){});
   auth.onAuthStateChanged(function(user) {
     if (user && !user.emailVerified) {
       /* 未完成 Email 驗證的 session — 頁面重載時靜默登出 */
