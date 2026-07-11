@@ -212,6 +212,11 @@
     /* ── MAP MODAL ── */
     .map-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1100;display:flex;align-items:center;justify-content:center;padding:1rem;}
     .map-box{background:var(--card);border-radius:12px;overflow:hidden;width:100%;max-width:620px;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+    /* 行事曆日期任務 Modal：手機底部滑出 */
+    @media(max-width:991px){
+      .cal-day-sheet{align-items:flex-end;padding:0;}
+      .cal-day-sheet .map-box{border-radius:16px 16px 0 0;max-height:68vh;margin-bottom:74px;}
+    }
     #lf-map{width:100%;height:300px;}
 
     /* ── MISC ── */
@@ -245,8 +250,10 @@
       .sidebar{width:100%;position:fixed;bottom:0;top:auto;left:0;right:0;flex-direction:row;border-right:none;border-top:1px solid var(--border);padding:.4rem .5rem;align-items:stretch;justify-content:space-around;min-height:unset;}
       .sidebar .brand{display:none;}
       /* 統一底部導覽按鈕高度：隱藏徽章/箭頭/子選單，鎖定固定高度 */
-      .sidebar .nav-btn{flex-direction:column;gap:2px;font-size:.68rem;justify-content:center;align-items:center;width:auto;flex:1;max-width:90px;padding:.25rem .3rem;height:56px;}
-      .sidebar .nav-label{flex-grow:0!important;}
+      .sidebar .nav-btn{flex-direction:column;gap:2px;font-size:.68rem;justify-content:center;align-items:center;width:auto;flex:1;max-width:90px;padding:0;height:56px;}
+      /* icon：line-height:1 移除字元框多餘空白，確保各按鈕 icon 視覺中心一致 */
+      .sidebar .nav-btn > i.bi{line-height:1;font-size:1.2rem;}
+      .sidebar .nav-label{flex-grow:0!important;white-space:nowrap;line-height:1.2;}
       .sidebar .nav-badges{display:none;}
       .sidebar .nav-chevron{display:none;}
       .sidebar .nav-sub{display:none!important;}
@@ -255,11 +262,20 @@
       .sidebar .nav-spacer{display:none;}
       .sidebar .nav-group-wrap{flex:1;max-width:90px;display:flex;flex-direction:column;align-items:stretch;}
       .sidebar .nav-group-wrap > .nav-btn{flex:1;max-width:none;width:100%;}
-      /* main-wrap：給定明確高度，讓內部 flex:1 chain 正常運作（行事曆列等高的關鍵） */
-      .main-wrap{margin-left:0;height:calc(100vh - 74px);height:calc(100dvh - 74px);min-height:unset;margin-bottom:0;flex-direction:column;overflow-y:auto;}
-      /* min-height:0 解除 flex item 預設 min-height:auto，允許收縮至 flex 分配的高度 */
-      .tasks-panel,.cal-main{border-right:none;padding:1rem;min-height:0;}
-      /* main-wrap 已包含底部導覽列偏移，right-panel 只需基本留白 */
+      /* main-wrap：topbar(50px) fixed → 本身 margin-top 讓開；body 捲動供 今日/群組；padding-bottom 讓底部導覽列不蓋住最後內容 */
+      .main-wrap{margin-left:0;margin-top:50px;margin-bottom:0;height:auto;min-height:calc(100dvh - 124px);padding-bottom:74px;flex-direction:column;overflow:visible;}
+      /* 今日/群組：tasks-panel 自然高度，讓 body 捲動（不建立巢狀捲軸容器） */
+      .tasks-panel{border-right:none;padding:1rem;}
+      /* 行事曆模式：main-wrap 鎖定固定高度，整條 flex 鏈靠 min-height:0 傳遞高度，不使用捲動 */
+      .main-wrap.cal-mode{height:calc(100dvh - 124px);min-height:unset;padding-bottom:0;overflow:hidden;display:flex;flex-direction:column;}
+      .main-wrap.cal-mode .cal-main{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;padding:.6rem .75rem;}
+      .main-wrap.cal-mode .cal-main > .d-flex{flex-shrink:0;}
+      .main-wrap.cal-mode .outlook-wrap{flex:1;min-height:0;overflow:hidden;}
+      .main-wrap.cal-mode .outlook-weeks{flex:1;min-height:0;}
+      .main-wrap.cal-mode .outlook-week-row{flex:1;min-height:0;display:flex;flex-direction:column;}
+      .main-wrap.cal-mode .outlook-cells{flex:1;min-height:0;}
+      .main-wrap.cal-mode .outlook-cell{min-height:0;}
+      .cal-main{border-right:none;padding:1rem;min-height:0;overflow-y:auto;}
       .right-panel{width:100%;min-width:unset;border-left:none;border-top:1px solid var(--border);padding-bottom:2rem;}
       /* 行事曆：讓 outlook-week-row 成為 flex 容器，outlook-cells(flex:1) 才能填滿週列高度 */
       .outlook-week-row{display:flex;flex-direction:column;}
@@ -284,7 +300,7 @@
     /* ── 手機頂部列（Logo + 使用者）── */
     .mobile-topbar{display:none;}
     @media(max-width:991px){
-      .mobile-topbar{display:flex;align-items:center;justify-content:space-between;padding:.55rem 1rem;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200;gap:.5rem;}
+      .mobile-topbar{display:flex;align-items:center;justify-content:space-between;height:50px;padding:0 1rem;background:var(--card);border-bottom:1px solid var(--border);position:fixed;top:0;left:0;right:0;z-index:300;gap:.5rem;}
       .mobile-topbar-logo{display:flex;align-items:center;gap:.4rem;font-size:.9rem;font-weight:700;letter-spacing:.01em;color:var(--text);text-decoration:none;}
       .mobile-topbar-logo img{height:22px;width:auto;}
       .mobile-topbar-user{display:flex;align-items:center;gap:.5rem;flex-shrink:0;}
@@ -525,7 +541,7 @@
 </nav>
 
 <!-- ===== MAIN WRAP ===== -->
-<div class="main-wrap">
+<div class="main-wrap" ng-class="{'cal-mode': tab==='calendar'}">
 
   <!-- 手機 / 平板：頂部列（Logo + 使用者 + 登出） -->
   <div class="mobile-topbar" ng-if="currentUser">
@@ -1185,7 +1201,7 @@
                    ng-repeat="sp in cell.spanEntries track by sp.key"
                    ng-class="{'span-round-left':sp.roundLeft,'span-round-right':sp.roundRight}"
                    ng-style="sp.task._isGroup ? {'background':getPrioColor(sp.task.priority)+'44','color':getPrioColor(sp.task.priority)} : {'background':getPrioColor(sp.task.priority),'color':'#fff'}"
-                   ng-click="calClickTask(sp.task);$event.stopPropagation()"
+                   ng-click="calClickTask(sp.task, cell.date);$event.stopPropagation()"
                    title="{{sp.task._isGroup ? '[群組] ' : ''}}{{sp.task.text}}">
                 <span ng-if="sp.showLabel">
                   <i class="bi bi-people-fill me-1" ng-if="sp.task._isGroup" style="font-size:.55rem;"></i>{{sp.task.text}}
@@ -1196,7 +1212,7 @@
                    ng-repeat="task in cell.chipTasks | limitTo:2 track by task.id"
                    ng-style="task._isGroup ? {'background':'transparent','border':'1.5px solid '+getPrioColor(task.priority),'color':getPrioColor(task.priority)} : {'background':getPrioColor(task.priority)}"
                    ng-class="{'done-chip':task.completed}"
-                   ng-click="calClickTask(task);$event.stopPropagation()"
+                   ng-click="calClickTask(task, cell.date);$event.stopPropagation()"
                    title="{{task._isGroup ? '[群組] ' : ''}}{{task.text}}">
                 <i class="bi bi-people-fill me-1" ng-if="task._isGroup" style="font-size:.55rem;"></i>
                 <i class="bi bi-check-circle-fill me-1" ng-if="task.completed" style="font-size:.6rem;"></i>{{task.text}}
@@ -1979,32 +1995,47 @@
     </div>
   </div>
 
-  <!-- ===== 行事曆 +N更多 Modal ===== -->
-  <div class="map-overlay" ng-if="calMore.open" ng-click="closeCalMore()">
-    <div class="map-box" ng-click="$event.stopPropagation()" style="max-width:420px;max-height:70vh;display:flex;flex-direction:column;">
-      <div class="d-flex justify-content-between align-items-center p-3" style="border-bottom:1px solid var(--border);flex-shrink:0;">
-        <h6 class="mb-0 fw-bold"><i class="bi bi-calendar3 me-2"></i>{{calMore.dateLabel}} 的所有任務</h6>
+  <!-- ===== 行事曆 日期任務 Modal（手機底部滑出 / 桌機置中） ===== -->
+  <div class="map-overlay cal-day-sheet" ng-if="calMore.open" ng-click="closeCalMore()">
+    <div class="map-box" ng-click="$event.stopPropagation()" style="max-width:440px;max-height:72vh;display:flex;flex-direction:column;">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center px-3 py-2" style="border-bottom:1px solid var(--border);flex-shrink:0;">
+        <h6 class="mb-0 fw-bold"><i class="bi bi-calendar3 me-2" style="color:var(--accent);"></i>{{calMore.dateLabel}}</h6>
         <button class="btn-icon" ng-click="closeCalMore()"><i class="bi bi-x-lg"></i></button>
       </div>
+      <!-- Task list -->
       <div class="p-2" style="overflow-y:auto;flex:1;">
-        <div ng-if="calMore.tasks.length===0" class="text-center py-4" style="color:var(--muted);font-size:.9rem;">
+        <div ng-if="calMore.tasks.length===0" class="text-center py-5" style="color:var(--muted);font-size:.9rem;">
+          <i class="bi bi-calendar-check" style="font-size:2rem;display:block;margin-bottom:.5rem;opacity:.4;"></i>
           此日無任務
         </div>
         <div ng-repeat="task in calMore.tasks track by task.id"
-             class="d-flex align-items-center gap-2 px-2 py-2 rounded mb-1"
-             style="cursor:pointer;transition:background .12s;"
-             ng-style="{'background': task._isGroup ? 'transparent' : getPrioColor(task.priority)+'22', 'border': '1px solid '+(task._isGroup ? getPrioColor(task.priority) : getPrioColor(task.priority)+'55')}"
+             class="d-flex align-items-center gap-2 px-3 py-2 rounded-2 mb-2"
+             style="cursor:pointer;transition:background .15s;min-height:44px;"
+             ng-style="{'background':getPrioColor(task.priority)+'18','border-left':'3px solid '+getPrioColor(task.priority)}"
              ng-click="calMoreClickTask(task)">
-          <span style="width:8px;height:8px;border-radius:50%;flex-shrink:0;"
-                ng-style="{'background':getPrioColor(task.priority)}"></span>
-          <i class="bi bi-people-fill" ng-if="task._isGroup" style="font-size:.75rem;color:var(--muted);"></i>
-          <i class="bi bi-check-circle-fill" ng-if="task.completed" style="font-size:.75rem;color:var(--muted);"></i>
-          <span style="flex:1;font-size:.88rem;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;"
-                ng-style="{'text-decoration':task.completed?'line-through':'none','color':task.completed?'var(--muted)':'var(--text)'}">
-            {{task._isGroup ? '[群組] ' : ''}}{{task.text}}
-          </span>
-          <span ng-if="task.deadline" style="font-size:.75rem;color:var(--muted);flex-shrink:0;">{{formatDT(task.deadline)}}</span>
+          <div class="flex-grow-1 min-w-0">
+            <div class="d-flex align-items-center gap-1">
+              <i class="bi bi-people-fill flex-shrink-0" ng-if="task._isGroup" style="font-size:.75rem;color:var(--muted);"></i>
+              <i class="bi bi-check-circle-fill flex-shrink-0" ng-if="task.completed" style="font-size:.8rem;" ng-style="{'color':getPrioColor(task.priority)}"></i>
+              <span class="text-truncate" style="font-size:.9rem;"
+                    ng-style="{'text-decoration':task.completed?'line-through':'none','color':task.completed?'var(--muted)':'var(--text)','font-weight':task.completed?'normal':'500'}">
+                {{task._isGroup ? '[群組] ' : ''}}{{task.text}}
+              </span>
+            </div>
+            <div ng-if="task.deadline" style="font-size:.73rem;color:var(--muted);margin-top:2px;">
+              <i class="bi bi-clock me-1"></i>{{formatDT(task.deadline)}}
+            </div>
+          </div>
+          <i class="bi bi-chevron-right flex-shrink-0" style="font-size:.8rem;color:var(--muted);"></i>
         </div>
+      </div>
+      <!-- Footer -->
+      <div class="px-3 py-2" style="border-top:1px solid var(--border);flex-shrink:0;">
+        <button class="btn btn-primary w-100" style="font-size:.9rem;"
+                ng-click="calAddForDate(calMore.dateStr);closeCalMore()">
+          <i class="bi bi-plus-lg me-1"></i>新增此日任務
+        </button>
       </div>
     </div>
   </div>
@@ -3399,18 +3430,30 @@ angular.module('todoApp', [])
     buildCalYearList();
   };
 
+  /* 手機判斷（< 992px = mobile/tablet） */
+  $scope.isMobileView = function() { return window.innerWidth < 992; };
+
   /* Calendar tab actions */
-  $scope.calGoDate=function(dateStr){ $scope.selectedDate=new Date(dateStr+'T00:00:00'); $scope.tab='today'; };
+  $scope.calGoDate = function(dateStr) {
+    if ($scope.isMobileView()) { $scope.openCalDayForDate(dateStr); return; }
+    $scope.selectedDate = new Date(dateStr + 'T00:00:00');
+    $scope.tab = 'today';
+  };
   $scope.calEditTask=function(task){
     var dateStr = task.date || (task.startTime ? task.startTime.substring(0,10) : null);
     if (dateStr) $scope.selectedDate = new Date(dateStr + 'T00:00:00');
-    $scope.tab='today';
+    $scope.viewMode = 'list'; // 強制切到列表模式，讓 header 顯示正確日期而非「今日」
+    $scope.tab = 'today';
     $timeout(function(){ $scope.editTask(task); }, 0);
   };
   $scope.calAddForDate=function(dateStr){
-    $scope.selectedDate=new Date(dateStr+'T00:00:00');
-    $scope.tab='today';
-    $timeout(function(){ $scope.startAdd(); }, 0);
+    $scope.selectedDate = new Date(dateStr + 'T00:00:00');
+    $scope.viewMode = 'list';
+    $scope.tab = 'today';
+    $timeout(function(){
+      $scope.startAdd();
+      $scope.form.startTime = new Date(dateStr + 'T00:00:00'); // 啟用時間預設為該日期 00:00，而非當前時間
+    }, 0);
   };
 
   /* Font size: 套用到 html 根元素，讓 rem 單位全面縮放 */
@@ -3693,24 +3736,43 @@ angular.module('todoApp', [])
     $scope._calRows = rows;
   }
 
-  /* 點擊行事曆任務 → 跳至編輯（統一入口，避免 ng-click 中使用逗號運算子） */
-  $scope.calClickTask = function(task) {
+  /* 點擊行事曆任務：手機 → 開啟日期清單 modal；桌機 → 直接進編輯
+     cellDate：呼叫端傳入的格子日期，確保跨月任務能找到正確的 _calRows cell */
+  $scope.calClickTask = function(task, cellDate) {
+    if ($scope.isMobileView()) {
+      var ds = cellDate || task.date || (task.startTime ? task.startTime.substring(0,10) : null);
+      if (ds) { $scope.openCalDayForDate(ds); return; }
+    }
     if (task._isGroup) { $scope.setTab('group'); $scope.editGroupTask(task); }
     else { $scope.calEditTask(task); }
   };
+  /* 從日期清單 modal 點擊任務 → 直接進編輯（不再回呼 calClickTask 以避免循環） */
   $scope.calMoreClickTask = function(task) {
     $scope.calMore.open = false;
-    $scope.calClickTask(task);
+    if (task._isGroup) { $scope.setTab('group'); $scope.editGroupTask(task); }
+    else { $scope.calEditTask(task); }
   };
 
-  /* +N更多 modal */
-  $scope.calMore = { open: false, dateLabel: '', tasks: [] };
+  /* 日期任務 modal */
+  $scope.calMore = { open: false, dateLabel: '', dateStr: '', tasks: [] };
   $scope.openCalMore = function(cell) {
-    $scope.calMore.dateLabel = cell.date;
+    var d = new Date(cell.date + 'T00:00:00');
+    var wdays = ['日','一','二','三','四','五','六'];
+    $scope.calMore.dateLabel = (d.getMonth()+1) + '月 ' + d.getDate() + '日 (' + wdays[d.getDay()] + ')';
+    $scope.calMore.dateStr   = cell.date;
     $scope.calMore.tasks     = cell.allTasks;
     $scope.calMore.open      = true;
   };
   $scope.closeCalMore = function() { $scope.calMore.open = false; };
+  /* 依日期字串從目前 _calRows 找到 cell 後開啟 modal */
+  $scope.openCalDayForDate = function(dateStr) {
+    var rows = $scope._calRows || [];
+    for (var i = 0; i < rows.length; i++) {
+      for (var j = 0; j < rows[i].cells.length; j++) {
+        if (rows[i].cells[j].date === dateStr) { $scope.openCalMore(rows[i].cells[j]); return; }
+      }
+    }
+  };
 
   $scope.createGroup = function() {
     if (!$scope.groupUi.newGroupName.trim()) return;
