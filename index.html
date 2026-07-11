@@ -60,6 +60,9 @@
     body.dark-theme .nav-badge-g{background:rgba(56,161,105,.28);color:#9ae6b4;}
     body.dark-theme .nav-badge-y{background:rgba(214,158,46,.28);color:#fbd38d;}
     body.dark-theme .nav-badge-r{background:rgba(229,62,62,.28);color:#fc8181;}
+    /* 桌機 / 平板側邊欄：標籤不換行，防止群組等項目撐高 nav-btn */
+    .sidebar .nav-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+    .sidebar .nav-group-wrap{min-width:0;}
     /* 深色模式：右側迷你日曆的 < > 箭頭按鈕 */
     body.dark-theme .cal-header .btn{color:var(--text)!important;}
     body.dark-theme .cal-header .btn:hover{background:rgba(255,255,255,.1);}
@@ -2150,33 +2153,48 @@ angular.module('todoApp', [])
         });
       });
 
-      /* ── Touch Drag（行動裝置）── */
+      /* ── Touch Drag with Long-Press（長按 350ms 啟動，手指移動則取消，避免捲動誤觸）── */
       var _touchActive = false;
+      var _longPressTimer = null;
+      var _touchStartX = 0;
       var _touchStartY = 0;
-      var _DRAG_PX = 8; /* 觸發拖曳的最小位移 px */
+      var _LONG_PRESS_MS = 350; /* 長按門檻（ms） */
+      var _CANCEL_PX = 6;       /* 觸發前移動超過此值視為捲動 */
 
       el0.addEventListener('touchstart', function(e) {
         if (el0.getAttribute('draggable') === 'false') return;
-        _touchStartY = e.touches[0].clientY;
+        var t = e.touches[0];
+        _touchStartX = t.clientX;
+        _touchStartY = t.clientY;
         _touchActive = false;
+        clearTimeout(_longPressTimer);
+        _longPressTimer = setTimeout(function() {
+          _longPressTimer = null;
+          _touchActive = true;
+          el0.classList.add('dragging');
+          if (navigator.vibrate) navigator.vibrate(30); /* 觸覺回饋 */
+          scope.$apply(function() { scope.dnd.dragId = taskId; });
+        }, _LONG_PRESS_MS);
       }, { passive: true });
 
       el0.addEventListener('touchmove', function(e) {
         if (el0.getAttribute('draggable') === 'false') return;
         var touch = e.touches[0];
-        if (!_touchActive) {
-          if (Math.abs(touch.clientY - _touchStartY) < _DRAG_PX) return;
-          _touchActive = true;
-          el0.classList.add('dragging');
-          scope.$apply(function() { scope.dnd.dragId = taskId; });
+        /* 長按計時器尚在：若手指移動超過門檻，取消（判定為捲動） */
+        if (_longPressTimer) {
+          if (Math.abs(touch.clientX - _touchStartX) > _CANCEL_PX ||
+              Math.abs(touch.clientY - _touchStartY) > _CANCEL_PX) {
+            clearTimeout(_longPressTimer);
+            _longPressTimer = null;
+          }
+          return; /* 尚未進入拖曳模式，讓捲動正常進行 */
         }
-        e.preventDefault(); /* 阻止頁面捲動 */
-        /* 暫時隱藏自身，讓 elementFromPoint 能命中下方元素 */
+        if (!_touchActive) return;
+        e.preventDefault(); /* 拖曳模式才阻止捲動 */
         el0.style.pointerEvents = 'none';
         var target = document.elementFromPoint(touch.clientX, touch.clientY);
         el0.style.pointerEvents = '';
         if (!target) return;
-        /* 向上走到含 task-dnd 屬性的祖先 */
         var te = target;
         while (te && te !== document.body && !te.hasAttribute('task-dnd')) te = te.parentElement;
         if (te && te !== el0 && te.hasAttribute('task-dnd')) {
@@ -2192,6 +2210,8 @@ angular.module('todoApp', [])
       }, { passive: false });
 
       function _onTouchEnd() {
+        clearTimeout(_longPressTimer);
+        _longPressTimer = null;
         if (!_touchActive) return;
         _touchActive = false;
         el0.classList.remove('dragging');
@@ -2205,6 +2225,8 @@ angular.module('todoApp', [])
       }
       el0.addEventListener('touchend',    _onTouchEnd, { passive: false });
       el0.addEventListener('touchcancel', function() {
+        clearTimeout(_longPressTimer);
+        _longPressTimer = null;
         _touchActive = false;
         el0.classList.remove('dragging');
         scope.$apply(function() { scope.dnd.dragId = null; scope.dnd.drop = null; });
@@ -2294,26 +2316,42 @@ angular.module('todoApp', [])
         });
       });
 
-      /* ── Touch Drag（行動裝置）── */
+      /* ── Touch Drag with Long-Press（與 taskDnd 相同機制）── */
       var _touchActive = false;
+      var _longPressTimer = null;
+      var _touchStartX = 0;
       var _touchStartY = 0;
-      var _DRAG_PX = 8;
+      var _LONG_PRESS_MS = 350;
+      var _CANCEL_PX = 6;
 
       el0.addEventListener('touchstart', function(e) {
         if (el0.getAttribute('draggable') === 'false') return;
-        _touchStartY = e.touches[0].clientY;
+        var t = e.touches[0];
+        _touchStartX = t.clientX;
+        _touchStartY = t.clientY;
         _touchActive = false;
+        clearTimeout(_longPressTimer);
+        _longPressTimer = setTimeout(function() {
+          _longPressTimer = null;
+          _touchActive = true;
+          el0.classList.add('dragging');
+          if (navigator.vibrate) navigator.vibrate(30);
+          scope.$apply(function() { scope.grpDnd.dragId = taskId; });
+        }, _LONG_PRESS_MS);
       }, { passive: true });
 
       el0.addEventListener('touchmove', function(e) {
         if (el0.getAttribute('draggable') === 'false') return;
         var touch = e.touches[0];
-        if (!_touchActive) {
-          if (Math.abs(touch.clientY - _touchStartY) < _DRAG_PX) return;
-          _touchActive = true;
-          el0.classList.add('dragging');
-          scope.$apply(function() { scope.grpDnd.dragId = taskId; });
+        if (_longPressTimer) {
+          if (Math.abs(touch.clientX - _touchStartX) > _CANCEL_PX ||
+              Math.abs(touch.clientY - _touchStartY) > _CANCEL_PX) {
+            clearTimeout(_longPressTimer);
+            _longPressTimer = null;
+          }
+          return;
         }
+        if (!_touchActive) return;
         e.preventDefault();
         el0.style.pointerEvents = 'none';
         var target = document.elementFromPoint(touch.clientX, touch.clientY);
@@ -2334,6 +2372,8 @@ angular.module('todoApp', [])
       }, { passive: false });
 
       function _onTouchEnd() {
+        clearTimeout(_longPressTimer);
+        _longPressTimer = null;
         if (!_touchActive) return;
         _touchActive = false;
         el0.classList.remove('dragging');
@@ -2347,6 +2387,8 @@ angular.module('todoApp', [])
       }
       el0.addEventListener('touchend',    _onTouchEnd, { passive: false });
       el0.addEventListener('touchcancel', function() {
+        clearTimeout(_longPressTimer);
+        _longPressTimer = null;
         _touchActive = false;
         el0.classList.remove('dragging');
         scope.$apply(function() { scope.grpDnd.dragId = null; scope.grpDnd.drop = null; });
